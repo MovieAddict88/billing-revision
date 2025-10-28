@@ -35,6 +35,7 @@
 				    <th>Months</th>
 				    <th>Package</th>
 				    <th>Amounts</th>
+				    <th>Due Date</th>
 				    <th>Delete</th>
 				  </tr>
 				</thead>
@@ -72,6 +73,7 @@
 													<td><?=$r_month?></td>
 													<td><?=$packageInfo->name?></td>
 													<td><?=$amount?></td>
+													<td><?=$customer->due_date?></td>
 													<td><button type="button" onClick=deleteBill() class="btn btn-info">Delete</button> <button onClick=editBill() type="button" class="btn btn-info">Edit</button></td>
 											</tr>
 									<?php }

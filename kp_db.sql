@@ -85,7 +85,8 @@ CREATE TABLE `customers` (
   `contact` varchar(20) NOT NULL,
   `login_code` varchar(255) DEFAULT NULL,
   `employer_id` int(11) DEFAULT NULL,
-  `dropped` tinyint(1) NOT NULL DEFAULT '0'
+  `dropped` tinyint(1) NOT NULL DEFAULT '0',
+  `due_date` DATE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------

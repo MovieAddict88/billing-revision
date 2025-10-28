@@ -45,6 +45,7 @@ $ledger = $admins->fetchPaymentHistoryByCustomer($customer_id);
                             <p><strong>Email:</strong> <?php echo $customer->email; ?></p>
                             <p><strong>Contact:</strong> <?php echo $customer->contact; ?></p>
                             <p><strong>Address:</strong> <?php echo $customer->address; ?></p>
+                            <p><strong>Due Date:</strong> <?php echo $customer->due_date; ?></p>
                         </div>
                         <div class="col-md-6">
                             <h4>Package Information</h4>
@@ -63,7 +64,6 @@ $ledger = $admins->fetchPaymentHistoryByCustomer($customer_id);
                                 <th>Paid</th>
                                 <th>Balance</th>
                                 <th>Status</th>
-                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -85,17 +85,6 @@ $ledger = $admins->fetchPaymentHistoryByCustomer($customer_id);
                                                 echo 'Unpaid';
                                             }
                                         ?></td>
-                                        <td>
-                                            <?php if ($payment->balance > 0): ?>
-                                                <?php if ($payment->paid > 0): ?>
-                                                    <a href="payment_transaction.php?id=<?php echo $payment->id; ?>" class="btn btn-primary">Pay Balance</a>
-                                                <?php else: ?>
-                                                    <a href="payment_transaction.php?id=<?php echo $payment->id; ?>" class="btn btn-primary">Pay</a>
-                                                <?php endif; ?>
-                                            <?php elseif ($payment->status == 'Unpaid' || $payment->status == 'Rejected'): ?>
-                                                <a href="payment_transaction.php?id=<?php echo $payment->id; ?>" class="btn btn-primary">Pay</a>
-                                            <?php endif; ?>
-                                        </td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>

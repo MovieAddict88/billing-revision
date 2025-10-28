@@ -112,6 +112,7 @@
         <div class="em"><b>Address:</b> <em><?=$info->address ?></em></div>
         <div class="em"><b>Contact :</b> <em><?=$info->contact ?></em> </div>
         <div class="em"><b>Account Number:</b> <em><?=$info->ip_address?></em></div>
+        <div class="em"><b>Due Date:</b> <em><?=$info->due_date?></em></div>
         <?php } ?>
         <div class="row">
         <div class="table-responsive">
