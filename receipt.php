@@ -177,7 +177,7 @@
             <?php if ($paymentLedger && count($paymentLedger) > 0): ?>
                 <?php foreach ($paymentLedger as $row): ?>
                     <tr>
-                        <td><?= htmlspecialchars(date('Y-m-d H:i:s', strtotime($row->paid_at))) ?></td>
+                        <td><?= htmlspecialchars(date('Y-m-d h:i:s A', strtotime($row->paid_at))) ?></td>
                         <td><?= htmlspecialchars($row->r_month) ?></td>
                         <td><?= htmlspecialchars($row->package_name ?: 'N/A') ?></td>
                         <td><?= number_format((float)$row->amount, 2) ?></td>
