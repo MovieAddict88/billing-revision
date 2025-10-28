@@ -101,6 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <option value="Manual">Manual</option>
                                 <option value="GCash">GCash</option>
                                 <option value="PayMaya">PayMaya</option>
+                                <option value="Coins.ph">Coins.ph</option>
                             </select>
                         </div>
                         <div class="form-group">
