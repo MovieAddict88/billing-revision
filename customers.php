@@ -67,6 +67,7 @@
                             <th style="min-width: 120px;">Amount Paid</th>
                             <th style="min-width: 120px;">Balance</th>
 							<th style="min-width: 150px;">Login Code</th>
+							<th style="min-width: 120px;">Due Date</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -144,6 +145,10 @@
 					        <label for="contact">Contact</label>
 					        <input type="tel" class="form-control" id="contact" name="contact" placeholder="Contact" required>
 					      </div>
+					      <div class="form-group">
+					        <label for="due_date">Due Date</label>
+					        <input type="date" class="form-control" id="due_date" name="due_date" placeholder="Due Date" required>
+					      </div>
 				</div>
 				<div class="modal-footer">
 					<button type="submit" class="btn btn-primary">Submit</button>
@@ -207,10 +212,11 @@
 		var conn_type = $('#ct-'+str).val();
 		var contact = $('#con-'+str).val();
 		var employer = $('#emp-'+str).val();
+		var due_date = $('#due_date-'+str).val();
 		$.ajax({
 			method:"POST",
 			url: "customers_approve.php?p=edit",
-			data: "full_name="+full_name+"&nid="+nid+"&address="+address+"&conn_location="+conn_location+"&email="+email+"&package="+package+"&ip_address="+ip_address+"&conn_type="+conn_type+"&contact="+contact+"&employer="+employer+"&id="+id,
+			data: "full_name="+full_name+"&nid="+nid+"&address="+address+"&conn_location="+conn_location+"&email="+email+"&package="+package+"&ip_address="+ip_address+"&conn_type="+conn_type+"&contact="+contact+"&employer="+employer+"&id="+id+"&due_date="+due_date,
 			success: function (data){
                 console.log(data);
 				viewData();

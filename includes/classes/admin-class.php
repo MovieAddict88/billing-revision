@@ -561,11 +561,11 @@
 		 * 
 		 */
 		
-		public function addCustomer($full_name, $nid, $address, $conn_location, $email, $package, $ip_address, $conn_type, $contact, $login_code, $employer_id)
+		public function addCustomer($full_name, $nid, $address, $conn_location, $email, $package, $ip_address, $conn_type, $contact, $login_code, $employer_id, $due_date)
 		{
-			$request = $this->dbh->prepare("INSERT INTO customers (`full_name`, `nid`, `address`, `conn_location`, `email`, `package_id`, `ip_address`, `conn_type`, `contact`, `login_code`, `employer_id`) VALUES(?,?,?,?,?,?,?,?,?,?,?)");
+			$request = $this->dbh->prepare("INSERT INTO customers (`full_name`, `nid`, `address`, `conn_location`, `email`, `package_id`, `ip_address`, `conn_type`, `contact`, `login_code`, `employer_id`, `due_date`) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)");
 			// Do not forget to encrypt the pasword before saving
-			if ($request->execute([$full_name, $nid, $address, $conn_location, $email, $package, $ip_address, $conn_type, $contact, $login_code, $employer_id])) {
+			if ($request->execute([$full_name, $nid, $address, $conn_location, $email, $package, $ip_address, $conn_type, $contact, $login_code, $employer_id, $due_date])) {
 				return $this->dbh->lastInsertId();
 			}
 			return false;
@@ -609,10 +609,10 @@
 		/**
 		 * Update Customers
 		 */
-		public function updateCustomer($id, $full_name, $nid, $address, $conn_location, $email, $package, $ip_address, $conn_type, $contact, $employer_id)
+		public function updateCustomer($id, $full_name, $nid, $address, $conn_location, $email, $package, $ip_address, $conn_type, $contact, $employer_id, $due_date)
 		{
-			$request = $this->dbh->prepare("UPDATE customers SET full_name =?, nid =?, address =?, conn_location= ?, email =?, package_id =?, ip_address=?, conn_type=?, contact=?, employer_id = ? WHERE id =?");
-			return $request->execute([$full_name, $nid, $address, $conn_location, $email, $package, $ip_address, $conn_type, $contact, $employer_id, $id]);
+			$request = $this->dbh->prepare("UPDATE customers SET full_name =?, nid =?, address =?, conn_location= ?, email =?, package_id =?, ip_address=?, conn_type=?, contact=?, employer_id = ?, due_date = ? WHERE id =?");
+			return $request->execute([$full_name, $nid, $address, $conn_location, $email, $package, $ip_address, $conn_type, $contact, $employer_id, $due_date, $id]);
 		}
 
 
@@ -1027,7 +1027,7 @@
 			return $request->execute([$new_balance, $payment_method, $reference_number, $submitted_amount, $gcash_number, $screenshot_path, $payment_id]);
 		}
 
-		public function processManualPayment($customer_id, $employer_id, $amount, $reference_number, $selected_bills, $screenshot = null)
+		public function processManualPayment($customer_id, $employer_id, $amount, $reference_number, $selected_bills, $payment_method, $screenshot = null)
 		{
 			$screenshot_path = null;
 			if ($screenshot && $screenshot['error'] == UPLOAD_ERR_OK) {
@@ -1066,10 +1066,11 @@
 					}
 
 					$request = $this->dbh->prepare(
-						"UPDATE payments SET status = 'Pending', balance = ?, payment_method = 'Manual', employer_id = ?, reference_number = ?, screenshot = ?, gcash_name = ? WHERE id = ?"
+						"UPDATE payments SET status = 'Pending', balance = ?, payment_method = ?, employer_id = ?, reference_number = ?, screenshot = ?, gcash_name = ? WHERE id = ?"
 					);
 					$request->execute([
 						$new_balance,
+						$payment_method,
 						$employer_id,
 						$reference_number,
 						$screenshot_path,

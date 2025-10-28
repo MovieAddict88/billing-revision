@@ -37,6 +37,7 @@
         <div class="em"><b>Contact :</b> <em><?=$info->contact ?></em> </div>
         <div class="em"><b>Package:</b> <em><?=$packageInfo->name?></em> </div>
         <div class="em"><b>IP address:</b> <em><?=$info->ip_address?></em></div>
+        <div class="em"><b>Due Date:</b> <em><?=$info->due_date?></em></div>
         <span class="message pull-right">Last payment date : <?=date("jS F y",strtotime("+7 day"))?></span>
     </div>
         <?php } ?>
