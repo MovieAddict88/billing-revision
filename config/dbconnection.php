@@ -7,10 +7,10 @@
         {
         	// Change the database setting with yours accordingly
             private $dbengine   = 'mysql';
-            private $dbhost     = 'sql100.infinityfree.com';
-            private $dbuser     = 'if0_40117390'; // Set your database username
-            private $dbpassword = 'YR4MQ3ZuMkbW'; //Set your database password
-            private $dbname     = 'if0_40117390_q';
+            private $dbhost     = 'localhost';
+            private $dbuser     = 'admin'; // Set your database username
+            private $dbpassword = 'admin'; //Set your database password
+            private $dbname     = 'kp_db';
 
         	function __construct()
         	{
@@ -22,7 +22,6 @@
 	               	// This will allow me to have objects format of my data everytime i fetch from my database
 	               	// Or we'll have to do it in each function in which we query data from database
 	                $this->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_OBJ);
-                    $this->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, FALSE);
 
 	            }
 	            catch (PDOException $e){

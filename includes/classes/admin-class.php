@@ -942,7 +942,7 @@
 		/**
 		 * Insert a row into payment_history to keep an immutable ledger of payments.
 		 */
-		public function insertPaymentHistoryEntry($payment, $paid_amount)
+		public function insertPaymentHistoryEntry($payment, $paid_amount, $paid_at = null)
 		{
 			if (!$payment) {
 				return false;
@@ -964,8 +964,9 @@
 				$customer = isset($customer) ? $customer : $this->getCustomerInfo($payment->customer_id);
 				$history_employer_id = $customer ? $customer->employer_id : null;
 			}
-			$request = $this->dbh->prepare("INSERT INTO payment_history (payment_id, customer_id, employer_id, package_id, r_month, amount, paid_amount, balance_after, payment_method, reference_number, paid_at) VALUES (?,?,?,?,?,?,?,?,?,?, NOW())");
-			return $request->execute([
+   $paid_at_sql = $paid_at ? '?' : 'NOW()';
+			$request = $this->dbh->prepare("INSERT INTO payment_history (payment_id, customer_id, employer_id, package_id, r_month, amount, paid_amount, balance_after, payment_method, reference_number, paid_at) VALUES (?,?,?,?,?,?,?,?,?,?, $paid_at_sql)");
+   $params = [
 				$payment->id,
 				$payment->customer_id,
 				$history_employer_id,
@@ -976,7 +977,11 @@
 				(float)$payment->balance,
 				$payment->payment_method,
 				$payment->reference_number,
-			]);
+			];
+   if ($paid_at) {
+    $params[] = $paid_at;
+   }
+			return $request->execute($params);
 		}
 
 		public function fetchPaymentHistoryByCustomer($customer_id)
@@ -1027,8 +1032,13 @@
 			return $request->execute([$new_balance, $payment_method, $reference_number, $submitted_amount, $gcash_number, $screenshot_path, $payment_id]);
 		}
 
-		public function processManualPayment($customer_id, $employer_id, $amount, $reference_number, $selected_bills, $payment_method, $screenshot = null)
+		public function processManualPayment($customer_id, $employer_id, $amount, $reference_number, $selected_bills, $payment_method, $screenshot = null, $payment_date = null, $payment_time = null)
 		{
+   $paid_at = null;
+   if ($payment_date && $payment_time) {
+    $paid_at = date('Y-m-d H:i:s', strtotime("$payment_date $payment_time"));
+   }
+
 			$screenshot_path = null;
 			if ($screenshot && $screenshot['error'] == UPLOAD_ERR_OK) {
 				$upload_dir = 'uploads/screenshots/';
@@ -1091,7 +1101,7 @@
 			}
 		}
 
-		public function approvePayment($payment_id)
+		public function approvePayment($payment_id, $paid_at = null)
 		{
 			$payment = $this->getPaymentById($payment_id);
 			if (!$payment) {
@@ -1116,12 +1126,18 @@
 
 			// Insert a history entry for this payment approval
 			if ($submitted_amount > 0) {
-				$this->insertPaymentHistoryEntry($payment, $submitted_amount);
+				$this->insertPaymentHistoryEntry($payment, $submitted_amount, $paid_at);
 			}
 
 			$new_status = ($payment->balance <= 0) ? 'Paid' : 'Unpaid';
-			$request = $this->dbh->prepare("UPDATE payments SET status = ?, p_date = NOW(), screenshot = NULL, gcash_name = NULL, gcash_number = NULL WHERE id = ?");
-			return $request->execute([$new_status, $payment_id]);
+   $p_date_sql = $paid_at ? '?' : 'NOW()';
+			$request = $this->dbh->prepare("UPDATE payments SET status = ?, p_date = $p_date_sql, screenshot = NULL, gcash_name = NULL, gcash_number = NULL WHERE id = ?");
+   $params = [$new_status];
+   if ($paid_at) {
+    $params[] = $paid_at;
+   }
+   $params[] = $payment_id;
+			return $request->execute($params);
 		}
 
         public function rejectPayment($payment_id)
