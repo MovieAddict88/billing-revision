@@ -8,8 +8,8 @@
         	// Change the database setting with yours accordingly
             private $dbengine   = 'mysql';
             private $dbhost     = 'localhost';
-            private $dbuser     = 'admin'; // Set your database username
-            private $dbpassword = 'admin'; //Set your database password
+            private $dbuser     = 'kp_user'; // Set your database username
+            private $dbpassword = 'kp_password'; //Set your database password
             private $dbname     = 'kp_db';
 
         	function __construct()

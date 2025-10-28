@@ -64,6 +64,7 @@ $ledger = $admins->fetchPaymentHistoryByCustomer($customer_id);
                                 <th>Paid</th>
                                 <th>Balance</th>
                                 <th>Status</th>
+                                <th>Paid On</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -74,7 +75,7 @@ $ledger = $admins->fetchPaymentHistoryByCustomer($customer_id);
                                         <td><?php echo $payment->amount; ?></td>
                                         <td><?php echo number_format($payment->paid, 2); ?></td>
                                         <td><?php echo number_format($payment->balance, 2); ?></td>
-                                        <td><?php 
+                                        <td><?php
                                             if ($payment->status === 'Rejected') {
                                                 echo 'Rejected';
                                             } elseif ($payment->paid > 0 && $payment->balance > 0) {
@@ -85,6 +86,7 @@ $ledger = $admins->fetchPaymentHistoryByCustomer($customer_id);
                                                 echo 'Unpaid';
                                             }
                                         ?></td>
+                                        <td><?= ($payment->payment_timestamp) ? date("F j, Y, g:i a", strtotime($payment->payment_timestamp)) : 'N/A' ?></td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
@@ -116,7 +118,7 @@ $ledger = $admins->fetchPaymentHistoryByCustomer($customer_id);
                             <?php if ($ledger): ?>
                                 <?php foreach ($ledger as $row): ?>
                                     <tr>
-                                        <td><?php echo htmlspecialchars(date('Y-m-d H:i:s', strtotime($row->paid_at))); ?></td>
+                                        <td><?php echo htmlspecialchars(date('F j, Y, g:i a', strtotime($row->paid_at))); ?></td>
                                         <td><?php echo htmlspecialchars($row->r_month); ?></td>
                                         <td><?php echo htmlspecialchars($row->package_name ?: 'N/A'); ?></td>
                                         <td><?php echo number_format((float)$row->amount, 2); ?></td>

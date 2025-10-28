@@ -417,6 +417,17 @@
 			return 'Unpaid';
 		}
 
+		public function fetchAllIndividualBillHistory($customer_id)
+		{
+			$sql = "SELECT *, (`amount` - `balance`) as paid FROM `payments` WHERE customer_id = ? ORDER BY `p_date` DESC";
+			$params = [$customer_id];
+			$request = $this->dbh->prepare($sql);
+			if ($request->execute($params)) {
+				return $request->fetchAll();
+			}
+			return false;
+		}
+
 		public function getEmployerById($id)
 		{
 			$request = $this->dbh->prepare("SELECT * FROM kp_user WHERE user_id = ?");
@@ -965,7 +976,7 @@
 				$history_employer_id = $customer ? $customer->employer_id : null;
 			}
    $paid_at_sql = $paid_at ? '?' : 'NOW()';
-			$request = $this->dbh->prepare("INSERT INTO payment_history (payment_id, customer_id, employer_id, package_id, r_month, amount, paid_amount, balance_after, payment_method, reference_number, paid_at) VALUES (?,?,?,?,?,?,?,?,?,?, $paid_at_sql)");
+			$request = $this->dbh->prepare("INSERT INTO payment_history (payment_id, customer_id, employer_id, package_id, r_month, amount, paid_amount, balance_after, payment_method, reference_number, paid_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)");
    $params = [
 				$payment->id,
 				$payment->customer_id,
@@ -977,10 +988,8 @@
 				(float)$payment->balance,
 				$payment->payment_method,
 				$payment->reference_number,
+				$payment->payment_timestamp,
 			];
-   if ($paid_at) {
-    $params[] = $paid_at;
-   }
 			return $request->execute($params);
 		}
 
@@ -1076,7 +1085,7 @@
 					}
 
 					$request = $this->dbh->prepare(
-						"UPDATE payments SET status = 'Pending', balance = ?, payment_method = ?, employer_id = ?, reference_number = ?, screenshot = ?, gcash_name = ? WHERE id = ?"
+						"UPDATE payments SET status = 'Pending', balance = ?, payment_method = ?, employer_id = ?, reference_number = ?, screenshot = ?, gcash_name = ?, payment_timestamp = ? WHERE id = ?"
 					);
 					$request->execute([
 						$new_balance,
@@ -1085,6 +1094,7 @@
 						$reference_number,
 						$screenshot_path,
 						$payment_for_this_bill,
+						$paid_at,
 						$bill_id
 					]);
 
@@ -1131,11 +1141,12 @@
 
 			$new_status = ($payment->balance <= 0) ? 'Paid' : 'Unpaid';
    $p_date_sql = $paid_at ? '?' : 'NOW()';
-			$request = $this->dbh->prepare("UPDATE payments SET status = ?, p_date = $p_date_sql, screenshot = NULL, gcash_name = NULL, gcash_number = NULL WHERE id = ?");
+			$request = $this->dbh->prepare("UPDATE payments SET status = ?, p_date = $p_date_sql, screenshot = NULL, gcash_name = NULL, gcash_number = NULL, payment_timestamp = ? WHERE id = ?");
    $params = [$new_status];
    if ($paid_at) {
     $params[] = $paid_at;
    }
+   $params[] = $payment->payment_timestamp;
    $params[] = $payment_id;
 			return $request->execute($params);
 		}

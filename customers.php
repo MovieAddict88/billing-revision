@@ -10,6 +10,8 @@
 	}
 ?>
 		<?php
+			require_once 'config/dbconnection.php';
+			$dbh = new Dbconnect();
 			require_once "includes/classes/admin-class.php";
 			$admins = new Admins($dbh);
 		?>

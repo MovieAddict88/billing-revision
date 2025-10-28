@@ -1,6 +1,8 @@
 <?php
 	// Start from getting the hader which contains some settings we need
 	require_once 'includes/header.php';
+	require_once 'config/dbconnection.php';
+	$dbh = new Dbconnect();
 	require_once "includes/classes/admin-class.php";
 	$admins	= new Admins($dbh);
 	// Redirect visitor to the login page if he is trying to access
