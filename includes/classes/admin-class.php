@@ -1027,7 +1027,7 @@
 			return $request->execute([$new_balance, $payment_method, $reference_number, $submitted_amount, $gcash_number, $screenshot_path, $payment_id]);
 		}
 
-		public function processManualPayment($customer_id, $employer_id, $amount, $reference_number, $selected_bills, $screenshot = null)
+		public function processManualPayment($customer_id, $employer_id, $amount, $reference_number, $selected_bills, $payment_method, $screenshot = null)
 		{
 			$screenshot_path = null;
 			if ($screenshot && $screenshot['error'] == UPLOAD_ERR_OK) {
@@ -1066,10 +1066,11 @@
 					}
 
 					$request = $this->dbh->prepare(
-						"UPDATE payments SET status = 'Pending', balance = ?, payment_method = 'Manual', employer_id = ?, reference_number = ?, screenshot = ?, gcash_name = ? WHERE id = ?"
+						"UPDATE payments SET status = 'Pending', balance = ?, payment_method = ?, employer_id = ?, reference_number = ?, screenshot = ?, gcash_name = ? WHERE id = ?"
 					);
 					$request->execute([
 						$new_balance,
+						$payment_method,
 						$employer_id,
 						$reference_number,
 						$screenshot_path,
