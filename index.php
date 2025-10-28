@@ -309,6 +309,7 @@ if ($user_role == 'employer') {
                                 <th>Address</th>
                                 <th>Contact</th>
                                 <th>Login Code</th>
+                                <th>Due Date</th>
                                 <th class="text-nowrap">Paid (₱)</th>
                                 <th class="text-nowrap">Balance (₱)</th>
                                 <th>Status</th>
@@ -323,6 +324,7 @@ if ($user_role == 'employer') {
                                         <td><?php echo htmlspecialchars($customer->address); ?></td>
                                         <td class="text-nowrap"><?php echo htmlspecialchars($customer->contact); ?></td>
                                         <td class="login-code"><?php echo htmlspecialchars($customer->login_code); ?></td>
+                                        <td class="text-nowrap"><?php echo htmlspecialchars($customer->due_date); ?></td>
                                         <td class="amount"><?php echo htmlspecialchars(number_format($customer->total_paid, 2)); ?></td>
                                         <td class="amount"><?php echo htmlspecialchars(number_format($customer->total_balance, 2)); ?></td>
                                         <td>

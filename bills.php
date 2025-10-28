@@ -48,6 +48,7 @@
 				    <th>Package</th>
 				    <th>Months</th>
 				    <th>Amounts</th>
+				    <th>Due Date</th>
 				    <th>Status</th>
 				    <th>Action</th>
 				  </tr>
@@ -69,6 +70,7 @@
 			  	<td><?=$package_name?></td>
 			  	<td><?=$bill->months?></td>
 			  	<td>₱<?=number_format($bill->total, 2)?></td>
+				<td><?=$customer_info->due_date?></td>
 				<td>
 					<?php 
 						$status = $bill->status;

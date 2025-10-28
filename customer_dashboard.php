@@ -45,6 +45,7 @@ $ledger = $admins->fetchPaymentHistoryByCustomer($customer_id);
                             <p><strong>Email:</strong> <?php echo $customer->email; ?></p>
                             <p><strong>Contact:</strong> <?php echo $customer->contact; ?></p>
                             <p><strong>Address:</strong> <?php echo $customer->address; ?></p>
+                            <p><strong>Due Date:</strong> <?php echo $customer->due_date; ?></p>
                         </div>
                         <div class="col-md-6">
                             <h4>Package Information</h4>

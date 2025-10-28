@@ -74,6 +74,10 @@
                             <td><?= $customerInfo->contact ?></td>
                         </tr>
                         <tr>
+                            <th>Due Date</th>
+                            <td><?= $customerInfo->due_date ?></td>
+                        </tr>
+                        <tr>
                             <th>Connection Location</th>
                             <td><?= $customerInfo->conn_location ?></td>
                         </tr>
