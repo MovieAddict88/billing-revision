@@ -74,11 +74,12 @@ $screenshot = isset($_FILES['screenshot']) ? $_FILES['screenshot'] : null;
                             <select name="payment_method" id="payment_method" class="form-control" required>
                                 <option value="GCash">GCash</option>
                                 <option value="PayMaya">PayMaya</option>
+                                <option value="Coins.ph">Coins.ph</option>
                             </select>
                         </div>
                         <div id="wallet_fields" style="display: none;">
                             <div class="form-group">
-                                <label for="wallet_account_name">Account Name (GCash/PayMaya)</label>
+                                <label for="wallet_account_name">Account Name (GCash/PayMaya/Coins.ph)</label>
                                 <input type="text" name="wallet_account_name" id="wallet_account_name" class="form-control">
                             </div>
                             <div class="form-group">
@@ -105,7 +106,7 @@ $screenshot = isset($_FILES['screenshot']) ? $_FILES['screenshot'] : null;
 <script>
     document.getElementById('payment_method').addEventListener('change', function () {
         var walletFields = document.getElementById('wallet_fields');
-        if (this.value === 'GCash' || this.value === 'PayMaya') {
+        if (this.value === 'GCash' || this.value === 'PayMaya' || this.value === 'Coins.ph') {
             walletFields.style.display = 'block';
             document.getElementById('wallet_account_name').required = true;
             document.getElementById('wallet_account_number').required = true;

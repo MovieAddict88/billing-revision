@@ -4,6 +4,8 @@
 	require_once 'includes/headx.php';
 
 	// require the admins class which containes most functions applied to admins
+	require_once 'config/dbconnection.php';
+	$dbh = new Dbconnect();
 	require_once "includes/classes/admin-class.php";
 
 	$admins	= new Admins($dbh);
