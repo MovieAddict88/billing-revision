@@ -210,7 +210,34 @@
                     <td class="search"><?=number_format($customer->total_paid, 2)?></td>
                     <td class="search"><?=number_format($customer->total_balance, 2)?></td>
 					<td class="search"><?=$customer->login_code?></td>
-					<td class="search"><?=$customer->due_date?></td>
+					<td class="search"
+						<?php
+							$dueDate = $customer->due_date;
+							$style = '';
+							if ($dueDate) {
+								$today = new DateTime();
+								$dueDateObj = new DateTime($dueDate);
+								$today->setTime(0,0,0);
+								$dueDateObj->setTime(0,0,0);
+
+								if ($dueDateObj < $today) {
+									$style = 'style="background-color: #FADBD8;"'; // Light Red for past due
+								} else {
+									$interval = $today->diff($dueDateObj);
+									$days = $interval->days;
+
+									if ($days <= 3) {
+										$style = 'style="background-color: #FADBD8;"'; // Light Red
+									} elseif ($days <= 7) {
+										$style = 'style="background-color: #FDEBD0;"'; // Light Orange
+									} else {
+										$style = 'style="background-color: #D6EAF8;"'; // Light Blue
+									}
+								}
+							}
+							echo $style;
+						?>
+					><?=$customer->due_date?></td>
 					<td class="search"><?=htmlspecialchars($customer->remarks)?></td>
 				</tr>
             <?php

@@ -325,7 +325,34 @@ if ($user_role == 'employer') {
                                         <td><?php echo htmlspecialchars($customer->address); ?></td>
                                         <td class="text-nowrap"><?php echo htmlspecialchars($customer->contact); ?></td>
                                         <td class="login-code"><?php echo htmlspecialchars($customer->login_code); ?></td>
-                                        <td class="text-nowrap"><?php echo htmlspecialchars($customer->due_date); ?></td>
+                                        <td class="text-nowrap"
+                                            <?php
+                                            $dueDate = $customer->due_date;
+                                            $style = '';
+                                            if ($dueDate) {
+                                                $today = new DateTime();
+                                                $dueDateObj = new DateTime($dueDate);
+                                                $today->setTime(0, 0, 0);
+                                                $dueDateObj->setTime(0, 0, 0);
+
+                                                if ($dueDateObj < $today) {
+                                                    $style = 'style="background-color: #FADBD8;"'; // Light Red for past due
+                                                } else {
+                                                    $interval = $today->diff($dueDateObj);
+                                                    $days = $interval->days;
+
+                                                    if ($days <= 3) {
+                                                        $style = 'style="background-color: #FADBD8;"'; // Light Red
+                                                    } elseif ($days <= 7) {
+                                                        $style = 'style="background-color: #FDEBD0;"'; // Light Orange
+                                                    } else {
+                                                        $style = 'style="background-color: #D6EAF8;"'; // Light Blue
+                                                    }
+                                                }
+                                            }
+                                            echo $style;
+                                            ?>
+                                        ><?php echo htmlspecialchars($customer->due_date); ?></td>
                                         <td class="amount"><?php echo htmlspecialchars(number_format($customer->total_paid, 2)); ?></td>
                                         <td class="amount"><?php echo htmlspecialchars(number_format($customer->total_balance, 2)); ?></td>
                                         <td>
