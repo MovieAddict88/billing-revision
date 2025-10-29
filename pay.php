@@ -79,14 +79,14 @@
 	<link rel="stylesheet" href="component/css/bootstrap-select.min.css"> <!-- CSS bootstrap -->
 	<link rel="stylesheet" href="component/css/style.css"> <!-- Resource style -->
     <link rel="stylesheet" href="component/css/reset.css"> <!-- Resource style -->
-	<link rel="stylesheet" href="component/css/invoice.css"> <!-- CSS bootstrap -->    
+	<link rel="stylesheet" href="component/css/invoice.css"> <!-- CSS bootstrap -->
 	<script src="component/js/modernizr.js"></script> <!-- Modernizr -->
 	<title>Invoice | Cornerstone</title>
 </head>
 <body>
 <div class="container">
         <?php
-            $info = $admins->getCustomerInfo($id); 
+            $info = $admins->getCustomerInfo($id);
             if (isset($info) && is_object($info)) {
             $package_id = $info->package_id;
             $packageInfo = $admins->getPackageInfo($package_id);
@@ -193,9 +193,9 @@
             <div class="form-group">
             <label for="months"></label>
             <select class="selectpicker" name="months[]" id="months" multiple required title="Select months">
-                  <?php 
-                       if (!empty($monthArray)) { 
-                          foreach ($monthArray as $month) { 
+                  <?php
+                       if (!empty($monthArray)) {
+                          foreach ($monthArray as $month) {
                             echo '<option value="'.$month.'" selected>'.$month.'</option>';
                           }
                        }
@@ -239,7 +239,7 @@
             <?php if ($paymentLedger && count($paymentLedger) > 0): ?>
                 <?php foreach ($paymentLedger as $row): ?>
                     <tr>
-                        <td><?= htmlspecialchars(date('Y-m-d H:i:s', strtotime($row->paid_at))) ?></td>
+                        <td><?= htmlspecialchars(date('F j, Y, g:i a', strtotime($row->paid_at))) ?></td>
                         <td><?= htmlspecialchars($row->r_month) ?></td>
                         <td><?= htmlspecialchars($row->package_name ?: 'N/A') ?></td>
                         <td><?= number_format((float)$row->amount, 2) ?></td>

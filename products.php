@@ -7,6 +7,11 @@
 	{
 		$commons->redirectTo(SITE_PATH.'login.php');
 	}
+
+	require_once 'config/dbconnection.php';
+	$dbh = new Dbconnect();
+	require_once "includes/classes/admin-class.php";
+	$admins	= new Admins($dbh);
 ?>
 
 	<div class="dashboard">
@@ -80,9 +85,7 @@
 									<div class="form-group">
 											<label for="category">Select Category</label>
 											<select class="form-control form-control-sm" name="category" id="category">
-												<?php 
-												require_once "includes/classes/admin-class.php";
-												$admins	= new Admins($dbh);
+												<?php
 												$categories = $admins->fetchCategory();
 												if (isset($categories) && sizeof($categories) > 0){ 
 													foreach ($categories as $category) { ?>

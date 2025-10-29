@@ -21,7 +21,8 @@ $customer = $admins->getCustomerInfo($payment->customer_id);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['approve'])) {
-        if ($admins->approvePayment($payment_id)) {
+        $paid_at = $payment->p_date ?: null;
+        if ($admins->approvePayment($payment_id, $paid_at)) {
             echo "<script>window.opener.location.reload(); window.close();</script>";
             exit();
         } else {
@@ -112,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <tbody>
                         <?php if ($history): foreach ($history as $row): ?>
                             <tr>
-                                <td><?php echo htmlspecialchars(date('Y-m-d H:i:s', strtotime($row->paid_at))); ?></td>
+                                <td><?php echo htmlspecialchars(date('Y-m-d h:i:s A', strtotime($row->paid_at))); ?></td>
                                 <td><?php echo number_format((float)$row->paid_amount, 2); ?></td>
                                 <td><?php echo number_format((float)$row->balance_after, 2); ?></td>
                                 <td><?php echo htmlspecialchars($row->payment_method ?: 'N/A'); ?></td>

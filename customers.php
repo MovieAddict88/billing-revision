@@ -10,6 +10,8 @@
 	}
 ?>
 		<?php
+			require_once 'config/dbconnection.php';
+			$dbh = new Dbconnect();
 			require_once "includes/classes/admin-class.php";
 			$admins = new Admins($dbh);
 		?>
@@ -67,6 +69,8 @@
                             <th style="min-width: 120px;">Amount Paid</th>
                             <th style="min-width: 120px;">Balance</th>
 							<th style="min-width: 150px;">Login Code</th>
+							<th style="min-width: 120px;">Due Date</th>
+							<th style="min-width: 200px;">Remarks</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -144,6 +148,10 @@
 					        <label for="contact">Contact</label>
 					        <input type="tel" class="form-control" id="contact" name="contact" placeholder="Contact" required>
 					      </div>
+					      <div class="form-group">
+					        <label for="due_date">Due Date</label>
+					        <input type="date" class="form-control" id="due_date" name="due_date" placeholder="Due Date" required>
+					      </div>
 				</div>
 				<div class="modal-footer">
 					<button type="submit" class="btn btn-primary">Submit</button>
@@ -152,6 +160,25 @@
 					</form>
 			</div>
 		</div>		
+	</div>
+	<div id="add_remark_modal" class="modal fade">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4 class="modal-title">Add/Edit Remark</h4>
+				</div>
+				<div class="modal-body">
+					<form method="post" id="remark_form" action="remarks.php">
+						<label>Remark</label>
+						<textarea name="remark" id="remark" class="form-control"></textarea>
+						<input type="hidden" name="customer_id" id="customer_id_remark">
+						<br>
+						<input type="submit" name="add_remark" id="add_remark_btn" class="btn btn-primary" value="Add Remark">
+					</form>
+				</div>
+			</div>
+		</div>
 	</div>
 
 	<?php
@@ -207,10 +234,11 @@
 		var conn_type = $('#ct-'+str).val();
 		var contact = $('#con-'+str).val();
 		var employer = $('#emp-'+str).val();
+		var due_date = $('#due_date-'+str).val();
 		$.ajax({
 			method:"POST",
 			url: "customers_approve.php?p=edit",
-			data: "full_name="+full_name+"&nid="+nid+"&address="+address+"&conn_location="+conn_location+"&email="+email+"&package="+package+"&ip_address="+ip_address+"&conn_type="+conn_type+"&contact="+contact+"&employer="+employer+"&id="+id,
+			data: "full_name="+full_name+"&nid="+nid+"&address="+address+"&conn_location="+conn_location+"&email="+email+"&package="+package+"&ip_address="+ip_address+"&conn_type="+conn_type+"&contact="+contact+"&employer="+employer+"&id="+id+"&due_date="+due_date,
 			success: function (data){
                 console.log(data);
 				viewData();
@@ -257,5 +285,10 @@
   	let top = (screen.height/2)-(800/2);
 		let params = `scrollbars=no,resizable=no,status=no,location=no,toolbar=no,menubar=no,width=600,height=800,left=${left},top=${top}`;
 		open('packages.php', 'Packages', params)
+		}
+		function openRemarkModal(customer_id, remarks) {
+			$('#customer_id_remark').val(customer_id);
+			$('#remark').val(remarks);
+			$('#add_remark_modal').modal('show');
 		}
 	</script>
