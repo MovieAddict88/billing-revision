@@ -328,15 +328,18 @@ if ($user_role == 'employer') {
                                         <td class="text-nowrap"
                                             <?php
                                             $dueDate = $customer->due_date;
+                                            $status = $customer->status;
                                             $style = '';
-                                            if ($dueDate) {
+                                            if ($status == 'Paid') {
+                                                $style = 'style="background-color: #D4EFDF;"'; // Light Green
+                                            } else if ($dueDate) {
                                                 $today = new DateTime();
                                                 $dueDateObj = new DateTime($dueDate);
-                                                $today->setTime(0, 0, 0);
-                                                $dueDateObj->setTime(0, 0, 0);
+                                                $today->setTime(0,0,0);
+                                                $dueDateObj->setTime(0,0,0);
 
                                                 if ($dueDateObj < $today) {
-                                                    $style = 'style="background-color: #FADBD8;"'; // Light Red for past due
+                                                    $style = 'style="background-color: #8B0000; color: white;"'; // Dark Red for overdue
                                                 } else {
                                                     $interval = $today->diff($dueDateObj);
                                                     $days = $interval->days;
@@ -373,6 +376,13 @@ if ($user_role == 'employer') {
                                                     <a href="manual_payment.php?customer=<?php echo $customer->id; ?>" class="btn btn-success btn-sm action-btn">Pay</a>
                                                 <?php endif; ?>
 												<button type="button" class="btn btn-primary btn-sm action-btn" onclick="openRemarkModal(<?php echo $customer->id; ?>, '<?php echo htmlspecialchars($customer->remarks); ?>')">Remark</button>
+												<?php
+													$dueDate = new DateTime($customer->due_date);
+													$today = new DateTime();
+													if ($dueDate < $today) {
+														echo '<a href="disconnect_customer.php?customer_id=' . $customer->id . '" class="btn btn-danger btn-sm action-btn">DISCONNECT</a>';
+													}
+												?>
                                             </div>
                                         </td>
 										<td><?php echo htmlspecialchars($customer->remarks); ?></td>

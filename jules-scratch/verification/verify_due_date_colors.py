@@ -6,7 +6,7 @@ def run(playwright):
     page = browser.new_page()
     page.goto("http://localhost:8080/login.php")
     page.fill('input[name="username"]', 'admin')
-    page.fill('input[name="password"]', '$2y$10$51/xhfZqmMt6pr9HhXfZB.Punql5srC5vXtOEradf0Cs5Dg/FzHYy')
+    page.fill('input[name="password"]', 'admin')
     page.click('button[type="submit"]')
     page.goto("http://localhost:8080/index.php")
     page.wait_for_selector('a[href="logout.php"]')

@@ -638,6 +638,12 @@
 			}
 		}
 
+		public function disconnectCustomer($customer_id)
+		{
+			$request = $this->dbh->prepare("UPDATE customers SET dropped = 1 WHERE id = ?");
+			return $request->execute([$customer_id]);
+		}
+
 		public function updateRemark($customer_id, $remark)
 		{
 			try {

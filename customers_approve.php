@@ -177,6 +177,13 @@
 						<a href="customer_details.php?id=<?=$customer->id?>" class="btn btn-info btn-sm btn-action">VIEW</a>
 						<button type="submit" id="delete" onclick="delData(<?=$customer->id ?>)" class="btn btn-warning btn-sm btn-action">DELETE</button>
 						<button type="button" class="btn btn-primary btn-sm btn-action" onclick="openRemarkModal(<?=$customer->id?>, '<?=htmlspecialchars($customer->remarks)?>')">REMARK</button>
+						<?php
+							$dueDate = new DateTime($customer->due_date);
+							$today = new DateTime();
+							if ($dueDate < $today) {
+								echo '<a href="disconnect_customer.php?customer_id=' . $customer->id . '" class="btn btn-danger btn-sm btn-action">DISCONNECT</a>';
+							}
+						?>
 					</td>
 					<td class="search"><?=$customer->full_name?></td>
 					<td class="search"><?=$customer->employer_name ? $customer->employer_name : 'N/A'?></td>
@@ -212,30 +219,33 @@
 					<td class="search"><?=$customer->login_code?></td>
 					<td class="search"
 						<?php
-							$dueDate = $customer->due_date;
-							$style = '';
-							if ($dueDate) {
-								$today = new DateTime();
-								$dueDateObj = new DateTime($dueDate);
-								$today->setTime(0,0,0);
-								$dueDateObj->setTime(0,0,0);
+						$dueDate = $customer->due_date;
+						$status = $admins->getCustomerStatus($customer->id);
+						$style = '';
+						if ($status == 'Paid') {
+							$style = 'style="background-color: #D4EFDF;"'; // Light Green
+						} else if ($dueDate) {
+							$today = new DateTime();
+							$dueDateObj = new DateTime($dueDate);
+							$today->setTime(0,0,0);
+							$dueDateObj->setTime(0,0,0);
 
-								if ($dueDateObj < $today) {
-									$style = 'style="background-color: #FADBD8;"'; // Light Red for past due
+							if ($dueDateObj < $today) {
+								$style = 'style="background-color: #8B0000; color: white;"'; // Dark Red for overdue
+							} else {
+								$interval = $today->diff($dueDateObj);
+								$days = $interval->days;
+
+								if ($days <= 3) {
+									$style = 'style="background-color: #FADBD8;"'; // Light Red
+								} elseif ($days <= 7) {
+									$style = 'style="background-color: #FDEBD0;"'; // Light Orange
 								} else {
-									$interval = $today->diff($dueDateObj);
-									$days = $interval->days;
-
-									if ($days <= 3) {
-										$style = 'style="background-color: #FADBD8;"'; // Light Red
-									} elseif ($days <= 7) {
-										$style = 'style="background-color: #FDEBD0;"'; // Light Orange
-									} else {
-										$style = 'style="background-color: #D6EAF8;"'; // Light Blue
-									}
+									$style = 'style="background-color: #D6EAF8;"'; // Light Blue
 								}
 							}
-							echo $style;
+						}
+						echo $style;
 						?>
 					><?=$customer->due_date?></td>
 					<td class="search"><?=htmlspecialchars($customer->remarks)?></td>
