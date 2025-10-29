@@ -54,6 +54,9 @@ $ledger = $admins->fetchPaymentHistoryByCustomer($customer_id);
                         </div>
                     </div>
                     <hr>
+                    <h4>Remarks</h4>
+                    <p><?php echo htmlspecialchars($customer->remarks); ?></p>
+                    <hr>
                     <h4>Payment History</h4>
                     <div class="table-responsive">
                     <table class="table table-striped">

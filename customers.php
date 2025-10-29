@@ -70,6 +70,7 @@
                             <th style="min-width: 120px;">Balance</th>
 							<th style="min-width: 150px;">Login Code</th>
 							<th style="min-width: 120px;">Due Date</th>
+							<th style="min-width: 200px;">Remarks</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -159,6 +160,25 @@
 					</form>
 			</div>
 		</div>		
+	</div>
+	<div id="add_remark_modal" class="modal fade">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4 class="modal-title">Add/Edit Remark</h4>
+				</div>
+				<div class="modal-body">
+					<form method="post" id="remark_form" action="remarks.php">
+						<label>Remark</label>
+						<textarea name="remark" id="remark" class="form-control"></textarea>
+						<input type="hidden" name="customer_id" id="customer_id_remark">
+						<br>
+						<input type="submit" name="add_remark" id="add_remark_btn" class="btn btn-primary" value="Add Remark">
+					</form>
+				</div>
+			</div>
+		</div>
 	</div>
 
 	<?php
@@ -265,5 +285,10 @@
   	let top = (screen.height/2)-(800/2);
 		let params = `scrollbars=no,resizable=no,status=no,location=no,toolbar=no,menubar=no,width=600,height=800,left=${left},top=${top}`;
 		open('packages.php', 'Packages', params)
+		}
+		function openRemarkModal(customer_id, remarks) {
+			$('#customer_id_remark').val(customer_id);
+			$('#remark').val(remarks);
+			$('#add_remark_modal').modal('show');
 		}
 	</script>

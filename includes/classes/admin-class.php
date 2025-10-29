@@ -276,6 +276,7 @@
 		$request = $this->dbh->prepare("
 			SELECT
 				c.*,
+				c.remarks,
 				COALESCE(p.total_paid, 0) as total_paid,
 				COALESCE(p.total_balance, 0) as total_balance,
 				CASE
@@ -626,6 +627,24 @@
 			return $request->execute([$full_name, $nid, $address, $conn_location, $email, $package, $ip_address, $conn_type, $contact, $employer_id, $due_date, $id]);
 		}
 
+		public function addRemark($customer_id, $remark)
+		{
+			$request = $this->dbh->prepare("UPDATE customers SET remarks = ? WHERE id = ?");
+			return $request->execute([$remark, $customer_id]);
+		}
+
+		public function updateRemark($customer_id, $remark)
+		{
+			$request = $this->dbh->prepare("UPDATE customers SET remarks = ? WHERE id = ?");
+			return $request->execute([$remark, $customer_id]);
+		}
+
+		public function deleteRemark($customer_id)
+		{
+			$request = $this->dbh->prepare("UPDATE customers SET remarks = NULL WHERE id = ?");
+			return $request->execute([$customer_id]);
+		}
+
 
 
 	
@@ -676,7 +695,7 @@
 			$offset = max(0, (int)$offset);
 			$limit = max(1, (int)$limit);
 			$params = [];
-			$sql = "\n                SELECT\n                    c.*,\n                    u.full_name as employer_name,\n                    COALESCE(p.total_paid, 0) as total_paid,\n                    COALESCE(p.total_balance, 0) as total_balance\n                FROM customers c\n                LEFT JOIN kp_user u ON c.employer_id = u.user_id\n                LEFT JOIN (\n                    SELECT customer_id, SUM(amount - balance) as total_paid, SUM(balance) as total_balance\n                    FROM payments GROUP BY customer_id\n                ) p ON c.id = p.customer_id\n                WHERE 1=1";
+			$sql = "\n                SELECT\n                    c.*,\n                    c.remarks,\n                    u.full_name as employer_name,\n                    COALESCE(p.total_paid, 0) as total_paid,\n                    COALESCE(p.total_balance, 0) as total_balance\n                FROM customers c\n                LEFT JOIN kp_user u ON c.employer_id = u.user_id\n                LEFT JOIN (\n                    SELECT customer_id, SUM(amount - balance) as total_paid, SUM(balance) as total_balance\n                    FROM payments GROUP BY customer_id\n                ) p ON c.id = p.customer_id\n                WHERE 1=1";
 			if ($query !== null && $query !== '') {
 				$sql .= " AND (c.full_name LIKE ? OR c.nid LIKE ? OR c.address LIKE ? OR c.email LIKE ? OR c.ip_address LIKE ? OR c.conn_type LIKE ? OR c.contact LIKE ? OR c.login_code LIKE ? OR u.full_name LIKE ?)";
 				$like = "%" . $query . "%";

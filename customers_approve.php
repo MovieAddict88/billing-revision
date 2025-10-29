@@ -176,6 +176,7 @@
 						</div>
 						<a href="customer_details.php?id=<?=$customer->id?>" class="btn btn-info btn-sm btn-action">VIEW</a>
 						<button type="submit" id="delete" onclick="delData(<?=$customer->id ?>)" class="btn btn-warning btn-sm btn-action">DELETE</button>
+						<button type="button" class="btn btn-primary btn-sm btn-action" onclick="openRemarkModal(<?=$customer->id?>, '<?=htmlspecialchars($customer->remarks)?>')">REMARK</button>
 					</td>
 					<td class="search"><?=$customer->full_name?></td>
 					<td class="search"><?=$customer->employer_name ? $customer->employer_name : 'N/A'?></td>
@@ -210,6 +211,7 @@
                     <td class="search"><?=number_format($customer->total_balance, 2)?></td>
 					<td class="search"><?=$customer->login_code?></td>
 					<td class="search"><?=$customer->due_date?></td>
+					<td class="search"><?=htmlspecialchars($customer->remarks)?></td>
 				</tr>
             <?php
             }
