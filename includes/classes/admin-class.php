@@ -629,20 +629,35 @@
 
 		public function addRemark($customer_id, $remark)
 		{
-			$request = $this->dbh->prepare("UPDATE customers SET remarks = ? WHERE id = ?");
-			return $request->execute([$remark, $customer_id]);
+			try {
+				$request = $this->dbh->prepare("UPDATE customers SET remarks = ? WHERE id = ?");
+				return $request->execute([$remark, $customer_id]);
+			} catch (Exception $e) {
+				error_log($e->getMessage());
+				return false;
+			}
 		}
 
 		public function updateRemark($customer_id, $remark)
 		{
-			$request = $this->dbh->prepare("UPDATE customers SET remarks = ? WHERE id = ?");
-			return $request->execute([$remark, $customer_id]);
+			try {
+				$request = $this->dbh->prepare("UPDATE customers SET remarks = ? WHERE id = ?");
+				return $request->execute([$remark, $customer_id]);
+			} catch (Exception $e) {
+				error_log($e->getMessage());
+				return false;
+			}
 		}
 
 		public function deleteRemark($customer_id)
 		{
-			$request = $this->dbh->prepare("UPDATE customers SET remarks = NULL WHERE id = ?");
-			return $request->execute([$customer_id]);
+			try {
+				$request = $this->dbh->prepare("UPDATE customers SET remarks = NULL WHERE id = ?");
+				return $request->execute([$customer_id]);
+			} catch (Exception $e) {
+				error_log($e->getMessage());
+				return false;
+			}
 		}
 
 

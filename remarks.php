@@ -1,5 +1,8 @@
 <?php
+require_once "config/dbconnection.php";
 require_once "includes/classes/admin-class.php";
+
+$dbh = new Dbconnect();
 $admins = new Admins($dbh);
 if (isset($_POST['add_remark'])) {
     $customer_id = $_POST['customer_id'];
