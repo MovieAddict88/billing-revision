@@ -315,54 +315,56 @@
 		return false;
 	}
 
-	public function fetchDisconnectedCustomersPage($offset = 0, $limit = 10, $query = null)
-    {
-        $offset = max(0, (int)$offset);
-        $limit = max(1, (int)$limit);
-        $params = [];
-        $sql = "
-            SELECT
-                c.*,
-                u.full_name as employer_name,
-                'Disconnected' as status
-            FROM customers c
-            LEFT JOIN kp_user u ON c.employer_id = u.user_id
-            WHERE c.dropped = 1";
+public function fetchDisconnectedCustomersPage($offset = 0, $limit = 10, $query = null)
+{
+    $offset = max(0, (int)$offset);
+    $limit = max(1, (int)$limit);
+    $params = [];
+    
+    $sql = "
+        SELECT
+            dc.*,
+            u.full_name as employer_name,
+            'Disconnected' as status
+        FROM disconnected_customers dc
+        LEFT JOIN kp_user u ON dc.employer_id = u.user_id
+        WHERE 1=1";
 
-        if ($query !== null && $query !== '') {
-            $sql .= " AND (c.full_name LIKE ? OR c.nid LIKE ? OR c.address LIKE ? OR c.email LIKE ? OR c.ip_address LIKE ? OR c.conn_type LIKE ? OR c.contact LIKE ? OR c.login_code LIKE ? OR u.full_name LIKE ?)";
-            $like = "%" . $query . "%";
-            $params = array_fill(0, 9, $like);
-        }
-
-        $sql .= " ORDER BY c.id DESC LIMIT $offset, $limit";
-        $request = $this->dbh->prepare($sql);
-
-        if ($request->execute($params)) {
-            return $request->fetchAll();
-        }
-        return false;
+    if ($query !== null && $query !== '') {
+        $sql .= " AND (dc.full_name LIKE ? OR dc.nid LIKE ? OR dc.address LIKE ? OR dc.email LIKE ? OR dc.ip_address LIKE ? OR dc.conn_type LIKE ? OR dc.contact LIKE ? OR dc.login_code LIKE ? OR u.full_name LIKE ?)";
+        $like = "%" . $query . "%";
+        $params = array_fill(0, 9, $like);
     }
 
-    public function countDisconnectedCustomers($query = null)
-    {
-        $params = [];
-        $sql = "SELECT COUNT(*) as total FROM customers c LEFT JOIN kp_user u ON c.employer_id = u.user_id WHERE c.dropped = 1";
+    $sql .= " ORDER BY dc.disconnected_at DESC LIMIT $offset, $limit";
+    $request = $this->dbh->prepare($sql);
 
-        if ($query !== null && $query !== '') {
-            $sql .= " AND (c.full_name LIKE ? OR c.nid LIKE ? OR c.address LIKE ? OR c.email LIKE ? OR c.ip_address LIKE ? OR c.conn_type LIKE ? OR c.contact LIKE ? OR c.login_code LIKE ? OR u.full_name LIKE ?)";
-            $like = "%" . $query . "%";
-            $params = array_fill(0, 9, $like);
-        }
-
-        $request = $this->dbh->prepare($sql);
-
-        if ($request->execute($params)) {
-            $row = $request->fetch();
-            return $row ? (int)$row->total : 0;
-        }
-        return 0;
+    if ($request->execute($params)) {
+        return $request->fetchAll();
     }
+    return false;
+}
+
+public function countDisconnectedCustomers($query = null)
+{
+    $params = [];
+    $sql = "SELECT COUNT(*) as total FROM disconnected_customers dc 
+            LEFT JOIN kp_user u ON dc.employer_id = u.user_id 
+            WHERE 1=1";
+
+    if ($query !== null && $query !== '') {
+        $sql .= " AND (dc.full_name LIKE ? OR dc.nid LIKE ? OR dc.address LIKE ? OR dc.email LIKE ? OR dc.ip_address LIKE ? OR dc.conn_type LIKE ? OR dc.contact LIKE ? OR dc.login_code LIKE ? OR u.full_name LIKE ?)";
+        $like = "%" . $query . "%";
+        $params = array_fill(0, 9, $like);
+    }
+
+    $request = $this->dbh->prepare($sql);
+    if ($request->execute($params)) {
+        $row = $request->fetch();
+        return $row ? (int)$row->total : 0;
+    }
+    return 0;
+}
 
 	public function fetchDisconnectedCustomersByEmployerPage($employer_id, $offset = 0, $limit = 10, $query = null)
     {
@@ -736,11 +738,63 @@
 			}
 		}
 
-		public function disconnectCustomer($customer_id)
-		{
-			$request = $this->dbh->prepare("UPDATE customers SET dropped = 1 WHERE id = ?");
-			return $request->execute([$customer_id]);
-		}
+public function disconnectCustomer($customer_id, $disconnected_by = null)
+{
+    try {
+        $this->dbh->beginTransaction();
+
+        // Get customer data before deleting
+        $customer = $this->getCustomerInfo($customer_id);
+        if (!$customer) {
+            throw new Exception("Customer not found");
+        }
+
+        // Insert into disconnected_customers table
+        $request = $this->dbh->prepare("
+            INSERT INTO disconnected_customers 
+            (original_id, full_name, nid, address, conn_location, email, ip_address, 
+             conn_type, package_id, contact, login_code, employer_id, due_date, remarks, disconnected_by) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ");
+        
+        $request->execute([
+            $customer->id,
+            $customer->full_name,
+            $customer->nid,
+            $customer->address,
+            $customer->conn_location,
+            $customer->email,
+            $customer->ip_address,
+            $customer->conn_type,
+            $customer->package_id,
+            $customer->contact,
+            $customer->login_code,
+            $customer->employer_id,
+            $customer->due_date,
+            $customer->remarks,
+            $disconnected_by
+        ]);
+
+        // Delete from main customers table
+        $request = $this->dbh->prepare("DELETE FROM customers WHERE id = ?");
+        $request->execute([$customer_id]);
+
+        // Delete associated payments
+        $request = $this->dbh->prepare("DELETE FROM payments WHERE customer_id = ?");
+        $request->execute([$customer_id]);
+
+        // Delete associated billings
+        $request = $this->dbh->prepare("DELETE FROM billings WHERE customer_id = ?");
+        $request->execute([$customer_id]);
+
+        $this->dbh->commit();
+        return true;
+    } catch (Exception $e) {
+        $this->dbh->rollBack();
+        error_log("Disconnect customer error: " . $e->getMessage());
+        return false;
+    }
+}
 
 		public function updateRemark($customer_id, $remark)
 		{
@@ -770,27 +824,59 @@
 		/**
 		 * Delete a Customer
 		 */
-		public function deleteCustomer($id)
-		{
-			try {
-				$this->dbh->beginTransaction();
+public function deleteCustomer($id)
+{
+    try {
+        $this->dbh->beginTransaction();
 
-				$request = $this->dbh->prepare("DELETE FROM payments WHERE customer_id = ?");
-				$request->execute([$id]);
+        // First check if customer exists and get data for backup
+        $customer = $this->getCustomerInfo($id);
+        if ($customer) {
+            // Backup to disconnected_customers before permanent deletion
+            $backupRequest = $this->dbh->prepare("
+                INSERT INTO disconnected_customers 
+                (original_id, full_name, nid, address, conn_location, email, ip_address, 
+                 conn_type, package_id, contact, login_code, employer_id, due_date, remarks, disconnected_by) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ");
+            
+            $backupRequest->execute([
+                $customer->id,
+                $customer->full_name,
+                $customer->nid,
+                $customer->address,
+                $customer->conn_location,
+                $customer->email,
+                $customer->ip_address,
+                $customer->conn_type,
+                $customer->package_id,
+                $customer->contact,
+                $customer->login_code,
+                $customer->employer_id,
+                $customer->due_date,
+                $customer->remarks,
+                $_SESSION['admin_session']->user_id ?? null
+            ]);
+        }
 
-				$request = $this->dbh->prepare("DELETE FROM billings WHERE customer_id = ?");
-				$request->execute([$id]);
+        // Then delete from main tables
+        $request = $this->dbh->prepare("DELETE FROM payments WHERE customer_id = ?");
+        $request->execute([$id]);
 
-				$request = $this->dbh->prepare("DELETE FROM customers WHERE id = ?");
-				$request->execute([$id]);
+        $request = $this->dbh->prepare("DELETE FROM billings WHERE customer_id = ?");
+        $request->execute([$id]);
 
-				$this->dbh->commit();
-				return true;
-			} catch (Exception $e) {
-				$this->dbh->rollBack();
-				return false;
-			}
-		}
+        $request = $this->dbh->prepare("DELETE FROM customers WHERE id = ?");
+        $request->execute([$id]);
+
+        $this->dbh->commit();
+        return true;
+    } catch (Exception $e) {
+        $this->dbh->rollBack();
+        error_log("Delete customer error: " . $e->getMessage());
+        return false;
+    }
+}
 
 
 
@@ -809,29 +895,44 @@
 		/**
 		 * Fetch customers paginated with optional search query (global admin list).
 		 */
-		public function fetchCustomersPage($offset = 0, $limit = 10, $query = null)
-		{
-			$offset = max(0, (int)$offset);
-			$limit = max(1, (int)$limit);
-			$params = [];
-			$sql = "\n                SELECT\n                    c.*,\n                    c.remarks,\n                    u.full_name as employer_name,\n                    COALESCE(p.total_paid, 0) as total_paid,\n                    COALESCE(p.total_balance, 0) as total_balance\n                FROM customers c\n                LEFT JOIN kp_user u ON c.employer_id = u.user_id\n                LEFT JOIN (\n                    SELECT customer_id, SUM(amount - balance) as total_paid, SUM(balance) as total_balance\n                    FROM payments GROUP BY customer_id\n                ) p ON c.id = p.customer_id\n                WHERE c.dropped = 0";
-			if ($query !== null && $query !== '') {
-				$sql .= " AND (c.full_name LIKE ? OR c.nid LIKE ? OR c.address LIKE ? OR c.email LIKE ? OR c.ip_address LIKE ? OR c.conn_type LIKE ? OR c.contact LIKE ? OR c.login_code LIKE ? OR u.full_name LIKE ?)";
-				$like = "%" . $query . "%";
-				$params = [$like,$like,$like,$like,$like,$like,$like,$like,$like];
-			}
-			$sql .= " ORDER BY c.id DESC LIMIT $offset, $limit";
-			$request = $this->dbh->prepare($sql);
-			if ($request->execute($params)) {
-				return $request->fetchAll();
-			}
-			return false;
-		}
+public function fetchCustomersPage($offset = 0, $limit = 10, $query = null)
+{
+    $offset = max(0, (int)$offset);
+    $limit = max(1, (int)$limit);
+    $params = [];
+    $sql = "
+        SELECT
+            c.*,
+            c.remarks,
+            u.full_name as employer_name,
+            COALESCE(p.total_paid, 0) as total_paid,
+            COALESCE(p.total_balance, 0) as total_balance
+        FROM customers c
+        LEFT JOIN kp_user u ON c.employer_id = u.user_id
+        LEFT JOIN (
+            SELECT customer_id, SUM(amount - balance) as total_paid, SUM(balance) as total_balance
+            FROM payments GROUP BY customer_id
+        ) p ON c.id = p.customer_id
+        WHERE c.dropped = 0";  // Only show non-disconnected customers
+
+    if ($query !== null && $query !== '') {
+        $sql .= " AND (c.full_name LIKE ? OR c.nid LIKE ? OR c.address LIKE ? OR c.email LIKE ? OR c.ip_address LIKE ? OR c.conn_type LIKE ? OR c.contact LIKE ? OR c.login_code LIKE ? OR u.full_name LIKE ?)";
+        $like = "%" . $query . "%";
+        $params = [$like,$like,$like,$like,$like,$like,$like,$like,$like];
+    }
+    $sql .= " ORDER BY c.id DESC LIMIT $offset, $limit";
+    
+    $request = $this->dbh->prepare($sql);
+    if ($request->execute($params)) {
+        return $request->fetchAll();
+    }
+    return false;
+}
 
 		public function countCustomers($query = null)
 		{
 			$params = [];
-			$sql = "SELECT COUNT(*) as total FROM customers c LEFT JOIN kp_user u ON c.employer_id = u.user_id WHERE c.dropped = 0";
+			$sql = "SELECT COUNT(*) as total FROM customers c LEFT JOIN kp_user u ON c.employer_id = u.user_id WHERE 1=1";
 			if ($query !== null && $query !== '') {
 				$sql .= " AND (c.full_name LIKE ? OR c.nid LIKE ? OR c.address LIKE ? OR c.email LIKE ? OR c.ip_address LIKE ? OR c.conn_type LIKE ? OR c.contact LIKE ? OR c.login_code LIKE ? OR u.full_name LIKE ?)";
 				$like = "%" . $query . "%";
