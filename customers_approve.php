@@ -22,6 +22,7 @@
 			$conn_type = $_POST['conn_type'];
 			$contact = $_POST['contact'];
 			$employer_id = $_POST['employer'];
+			$due_date = $_POST['due_date'];
 			$login_code = bin2hex(random_bytes(16));
 
 			if (isset($_POST)) 
@@ -29,7 +30,7 @@
 
 				$errors = array();
 				// Check if password are the same
-				$customer_id = $admins->addCustomer($full_name, $nid, $address, $conn_location, $email, $package, $ip_address, $conn_type, $contact, $login_code, $employer_id);
+				$customer_id = $admins->addCustomer($full_name, $nid, $address, $conn_location, $email, $package, $ip_address, $conn_type, $contact, $login_code, $employer_id, $due_date);
 				if ($customer_id)
 				{
 					$packageInfo = $admins->getPackageInfo($package);
@@ -62,7 +63,8 @@
 		$conn_type = $_POST['conn_type'];
 		$contact = $_POST['contact'];
 		$employer_id = $_POST['employer'];
-		if (!$admins->updateCustomer($id, $full_name, $nid, $address, $conn_location, $email, $package, $ip_address,  $conn_type, $contact, $employer_id))
+		$due_date = $_POST['due_date'];
+		if (!$admins->updateCustomer($id, $full_name, $nid, $address, $conn_location, $email, $package, $ip_address,  $conn_type, $contact, $employer_id, $due_date))
 		{	
 			//echo "$id $customername $email $full_name $address $contact";
 			echo "Sorry Data could not be Updated !";
@@ -137,6 +139,10 @@
 												<input type="text" class="form-control" id="con-<?=$customer->id?>"   value="<?=$customer->contact?>" required>
 											</div>
 											<div class="form-group">
+												<label for="due_date">Due Date</label>
+												<input type="date" class="form-control" id="due_date-<?=$customer->id?>"   value="<?=$customer->due_date?>" required>
+											</div>
+											<div class="form-group">
 												<label for="conlocation">Connection Location</label>
 												<input type="text" class="form-control" id="conn_loc-<?=$customer->id?>"   value="<?=$customer->conn_location?>" required>
 											</div>
@@ -170,6 +176,14 @@
 						</div>
 						<a href="customer_details.php?id=<?=$customer->id?>" class="btn btn-info btn-sm btn-action">VIEW</a>
 						<button type="submit" id="delete" onclick="delData(<?=$customer->id ?>)" class="btn btn-warning btn-sm btn-action">DELETE</button>
+						<button type="button" class="btn btn-primary btn-sm btn-action" onclick="openRemarkModal(<?=$customer->id?>, '<?=htmlspecialchars($customer->remarks)?>')">REMARK</button>
+						<?php
+							$dueDate = new DateTime($customer->due_date);
+							$today = new DateTime();
+							if ($dueDate < $today) {
+								echo '<a href="disconnect_customer.php?customer_id=' . $customer->id . '" class="btn btn-danger btn-sm btn-action">DISCONNECT</a>';
+							}
+						?>
 					</td>
 					<td class="search"><?=$customer->full_name?></td>
 					<td class="search"><?=$customer->employer_name ? $customer->employer_name : 'N/A'?></td>
@@ -203,6 +217,38 @@
                     <td class="search"><?=number_format($customer->total_paid, 2)?></td>
                     <td class="search"><?=number_format($customer->total_balance, 2)?></td>
 					<td class="search"><?=$customer->login_code?></td>
+					<td class="search"
+						<?php
+						$dueDate = $customer->due_date;
+						$status = $admins->getCustomerStatus($customer->id);
+						$style = '';
+						if ($status == 'Paid') {
+							$style = 'style="background-color: #D4EFDF;"'; // Light Green
+						} else if ($dueDate) {
+							$today = new DateTime();
+							$dueDateObj = new DateTime($dueDate);
+							$today->setTime(0,0,0);
+							$dueDateObj->setTime(0,0,0);
+
+							if ($dueDateObj < $today) {
+								$style = 'style="background-color: #8B0000; color: white;"'; // Dark Red for overdue
+							} else {
+								$interval = $today->diff($dueDateObj);
+								$days = $interval->days;
+
+								if ($days <= 3) {
+									$style = 'style="background-color: #FADBD8;"'; // Light Red
+								} elseif ($days <= 7) {
+									$style = 'style="background-color: #FDEBD0;"'; // Light Orange
+								} else {
+									$style = 'style="background-color: #D6EAF8;"'; // Light Blue
+								}
+							}
+						}
+						echo $style;
+						?>
+					><?=$customer->due_date?></td>
+					<td class="search"><?=htmlspecialchars($customer->remarks)?></td>
 				</tr>
             <?php
             }

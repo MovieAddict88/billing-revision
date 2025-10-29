@@ -15,3 +15,13 @@
 	<title>Cornerstone | Customer Portal</title>
 </head>
 <body>
+<header class="cd-main-header">
+    <a href="customer_dashboard.php" class="cd-logo"><img src="component/img/cd-logo.svg" alt="Logo"></a>
+    <nav class="cd-main-nav">
+        <ul>
+            <li><a href="customer_dashboard.php">Dashboard</a></li>
+            <li><a href="statement_of_account.php">Statement of Account</a></li>
+            <li><a href="customer_logout.php">Logout</a></li>
+        </ul>
+    </nav>
+</header>

@@ -309,10 +309,12 @@ if ($user_role == 'employer') {
                                 <th>Address</th>
                                 <th>Contact</th>
                                 <th>Login Code</th>
+                                <th>Due Date</th>
                                 <th class="text-nowrap">Paid (₱)</th>
                                 <th class="text-nowrap">Balance (₱)</th>
                                 <th>Status</th>
                                 <th>Actions</th>
+                                <th>Remarks</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -323,6 +325,37 @@ if ($user_role == 'employer') {
                                         <td><?php echo htmlspecialchars($customer->address); ?></td>
                                         <td class="text-nowrap"><?php echo htmlspecialchars($customer->contact); ?></td>
                                         <td class="login-code"><?php echo htmlspecialchars($customer->login_code); ?></td>
+                                        <td class="text-nowrap"
+                                            <?php
+                                            $dueDate = $customer->due_date;
+                                            $status = $customer->status;
+                                            $style = '';
+                                            if ($status == 'Paid') {
+                                                $style = 'style="background-color: #D4EFDF;"'; // Light Green
+                                            } else if ($dueDate) {
+                                                $today = new DateTime();
+                                                $dueDateObj = new DateTime($dueDate);
+                                                $today->setTime(0,0,0);
+                                                $dueDateObj->setTime(0,0,0);
+
+                                                if ($dueDateObj < $today) {
+                                                    $style = 'style="background-color: #8B0000; color: white;"'; // Dark Red for overdue
+                                                } else {
+                                                    $interval = $today->diff($dueDateObj);
+                                                    $days = $interval->days;
+
+                                                    if ($days <= 3) {
+                                                        $style = 'style="background-color: #FADBD8;"'; // Light Red
+                                                    } elseif ($days <= 7) {
+                                                        $style = 'style="background-color: #FDEBD0;"'; // Light Orange
+                                                    } else {
+                                                        $style = 'style="background-color: #D6EAF8;"'; // Light Blue
+                                                    }
+                                                }
+                                            }
+                                            echo $style;
+                                            ?>
+                                        ><?php echo htmlspecialchars($customer->due_date); ?></td>
                                         <td class="amount"><?php echo htmlspecialchars(number_format($customer->total_paid, 2)); ?></td>
                                         <td class="amount"><?php echo htmlspecialchars(number_format($customer->total_balance, 2)); ?></td>
                                         <td>
@@ -342,8 +375,17 @@ if ($user_role == 'employer') {
                                                 <?php elseif ($customer->status != 'Paid' && $customer->status != 'Partial'): ?>
                                                     <a href="manual_payment.php?customer=<?php echo $customer->id; ?>" class="btn btn-success btn-sm action-btn">Pay</a>
                                                 <?php endif; ?>
+												<button type="button" class="btn btn-primary btn-sm action-btn" onclick="openRemarkModal(<?php echo $customer->id; ?>, '<?php echo htmlspecialchars($customer->remarks); ?>')">Remark</button>
+												<?php
+													$dueDate = new DateTime($customer->due_date);
+													$today = new DateTime();
+													if ($dueDate < $today) {
+														echo '<a href="disconnect_customer.php?customer_id=' . $customer->id . '" class="btn btn-danger btn-sm action-btn">DISCONNECT</a>';
+													}
+												?>
                                             </div>
                                         </td>
+										<td><?php echo htmlspecialchars($customer->remarks); ?></td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
@@ -858,4 +900,28 @@ include 'includes/footer.php';
         });
         <?php endif; ?>
     });
+	function openRemarkModal(customer_id, remarks) {
+		$('#customer_id_remark').val(customer_id);
+		$('#remark').val(remarks);
+		$('#add_remark_modal').modal('show');
+	}
 </script>
+<div id="add_remark_modal" class="modal fade">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
+				<h4 class="modal-title">Add/Edit Remark</h4>
+			</div>
+			<div class="modal-body">
+				<form method="post" id="remark_form" action="remarks.php">
+					<label>Remark</label>
+					<textarea name="remark" id="remark" class="form-control"></textarea>
+					<input type="hidden" name="customer_id" id="customer_id_remark">
+					<br>
+					<input type="submit" name="add_remark" id="add_remark_btn" class="btn btn-primary" value="Add Remark">
+				</form>
+			</div>
+		</div>
+	</div>
+</div>

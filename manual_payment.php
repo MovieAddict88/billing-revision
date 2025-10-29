@@ -24,11 +24,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $employer_id = $_SESSION['user_id'];
     $amount = $_POST['amount'];
     $reference_number = $_POST['reference_number'];
+    $payment_method = $_POST['payment_method'];
     $screenshot = isset($_FILES['screenshot']) ? $_FILES['screenshot'] : null;
     $selected_bills = isset($_POST['bills']) ? $_POST['bills'] : [];
+    $payment_date = $_POST['payment_date'];
+    $payment_time = $_POST['payment_time'];
 
     if (!empty($selected_bills)) {
-        if ($admins->processManualPayment($customer_id, $employer_id, $amount, $reference_number, $selected_bills, $screenshot)) {
+        if ($admins->processManualPayment($customer_id, $employer_id, $amount, $reference_number, $selected_bills, $payment_method, $screenshot, $payment_date, $payment_time)) {
             echo "<script>alert('Payment submitted successfully and is pending approval.'); window.close();</script>";
             exit();
         } else {
@@ -93,6 +96,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <label for="amount">Payment Amount</label>
                             <input type="number" name="amount" id="amount" class="form-control" step="0.01" min="0" placeholder="Auto-fills with sum of selected balances">
                             <small class="form-text text-muted">Selecting bills will auto-fill the remaining balance. You may enter a lower initial amount if needed.</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="payment_date">Payment Date</label>
+                            <input type="date" name="payment_date" id="payment_date" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="payment_time">Payment Time</label>
+                            <input type="time" name="payment_time" id="payment_time" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="payment_method">Payment Method</label>
+                            <select name="payment_method" id="payment_method" class="form-control" required>
+                                <option value="Manual">Manual</option>
+                                <option value="GCash">GCash</option>
+                                <option value="PayMaya">PayMaya</option>
+                                <option value="Coins.ph">Coins.ph</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label for="reference_number">Reference Number</label>

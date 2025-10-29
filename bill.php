@@ -37,6 +37,7 @@
         <div class="em"><b>Contact :</b> <em><?=$info->contact ?></em> </div>
         <div class="em"><b>Package:</b> <em><?=$packageInfo->name?></em> </div>
         <div class="em"><b>IP address:</b> <em><?=$info->ip_address?></em></div>
+        <div class="em"><b>Due Date:</b> <em><?=$info->due_date?></em></div>
         <span class="message pull-right">Last payment date : <?=date("jS F y",strtotime("+7 day"))?></span>
     </div>
         <?php } ?>
@@ -45,8 +46,8 @@
         <table class="table table-striped table-bordered">
             <thead class="thead-inverse">
                 <tr>
-                    <th>Plan </th>
-                    <th>25Mbps</th>
+                    <th>Month </th>
+                    <th>Paid On</th>
                     <th>Amount</th>
                     <th>Balance</th>
                 </tr>
@@ -60,10 +61,10 @@
                         $total += $bill->amount;
                         ?>
                     <tr>
-                         <td><?=date("F j", strtotime("-1 month"))?></td>  <!-- last month -->
-                <td><?=date("F j")?></td>                         <!-- present month -->
+                        <td><?= $bill->r_month ?></td>
+                        <td><?= ($bill->payment_timestamp) ? date("F j, Y, g:i a", strtotime($bill->payment_timestamp)) : 'N/A' ?></td>
                         <td><?=$bill->amount?></td>
-                        <td>₱<?=number_format($balance, 2)?></td>
+                        <td>₱<?=number_format($bill->balance, 2)?></td>
                     </tr>
                 <?php   } ?>
             </tbody>
