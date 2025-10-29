@@ -235,7 +235,7 @@
                         CASE
                             WHEN EXISTS (SELECT 1 FROM payments px WHERE px.customer_id = c.id AND px.status = 'Pending') THEN 'Pending'
                             WHEN EXISTS (SELECT 1 FROM payments rx WHERE rx.customer_id = c.id AND rx.status = 'Rejected') THEN 'Rejected'
-                            WHEN c.dropped = 1 THEN 'Unpaid'
+                            WHEN c.dropped = 1 THEN 'Disconnected'
                             WHEN COALESCE(p.total_balance, 0) > 0 AND COALESCE(p.total_paid, 0) > 0 THEN 'Balance'
                             WHEN COALESCE(p.total_balance, 0) > 0 AND COALESCE(p.total_paid, 0) = 0 THEN 'Unpaid'
                             WHEN COALESCE(p.total_paid, 0) > 0 AND COALESCE(p.total_balance, 0) = 0 THEN 'Paid'
@@ -314,6 +314,104 @@
 		}
 		return false;
 	}
+
+	public function fetchDisconnectedCustomersPage($offset = 0, $limit = 10, $query = null)
+    {
+        $offset = max(0, (int)$offset);
+        $limit = max(1, (int)$limit);
+        $params = [];
+        $sql = "
+            SELECT
+                c.*,
+                u.full_name as employer_name,
+                'Disconnected' as status
+            FROM customers c
+            LEFT JOIN kp_user u ON c.employer_id = u.user_id
+            WHERE c.dropped = 1";
+
+        if ($query !== null && $query !== '') {
+            $sql .= " AND (c.full_name LIKE ? OR c.nid LIKE ? OR c.address LIKE ? OR c.email LIKE ? OR c.ip_address LIKE ? OR c.conn_type LIKE ? OR c.contact LIKE ? OR c.login_code LIKE ? OR u.full_name LIKE ?)";
+            $like = "%" . $query . "%";
+            $params = array_fill(0, 9, $like);
+        }
+
+        $sql .= " ORDER BY c.id DESC LIMIT $offset, $limit";
+        $request = $this->dbh->prepare($sql);
+
+        if ($request->execute($params)) {
+            return $request->fetchAll();
+        }
+        return false;
+    }
+
+    public function countDisconnectedCustomers($query = null)
+    {
+        $params = [];
+        $sql = "SELECT COUNT(*) as total FROM customers c LEFT JOIN kp_user u ON c.employer_id = u.user_id WHERE c.dropped = 1";
+
+        if ($query !== null && $query !== '') {
+            $sql .= " AND (c.full_name LIKE ? OR c.nid LIKE ? OR c.address LIKE ? OR c.email LIKE ? OR c.ip_address LIKE ? OR c.conn_type LIKE ? OR c.contact LIKE ? OR c.login_code LIKE ? OR u.full_name LIKE ?)";
+            $like = "%" . $query . "%";
+            $params = array_fill(0, 9, $like);
+        }
+
+        $request = $this->dbh->prepare($sql);
+
+        if ($request->execute($params)) {
+            $row = $request->fetch();
+            return $row ? (int)$row->total : 0;
+        }
+        return 0;
+    }
+
+	public function fetchDisconnectedCustomersByEmployerPage($employer_id, $offset = 0, $limit = 10, $query = null)
+    {
+        $offset = max(0, (int)$offset);
+        $limit = max(1, (int)$limit);
+        $params = [$employer_id];
+        $sql = "
+            SELECT
+                c.*,
+                'Disconnected' as status
+            FROM
+                customers c
+            WHERE
+                c.employer_id = ? AND c.dropped = 1";
+
+        if ($query !== null && $query !== '') {
+            $sql .= " AND (c.full_name LIKE ? OR c.nid LIKE ? OR c.address LIKE ? OR c.email LIKE ? OR c.ip_address LIKE ? OR c.conn_type LIKE ? OR c.contact LIKE ? OR c.login_code LIKE ?)";
+            $like = "%" . $query . "%";
+            $params = array_merge($params, array_fill(0, 8, $like));
+        }
+
+        $sql .= " ORDER BY c.id DESC LIMIT $offset, $limit";
+        $request = $this->dbh->prepare($sql);
+
+        if ($request->execute($params)) {
+            return $request->fetchAll();
+        }
+        return false;
+    }
+
+    public function countDisconnectedCustomersByEmployer($employer_id, $query = null)
+    {
+        $params = [$employer_id];
+        $sql = "SELECT COUNT(*) as total FROM customers c WHERE c.employer_id = ? AND c.dropped = 1";
+
+        if ($query !== null && $query !== '') {
+            $sql .= " AND (c.full_name LIKE ? OR c.nid LIKE ? OR c.address LIKE ? OR c.email LIKE ? OR c.ip_address LIKE ? OR c.conn_type LIKE ? OR c.contact LIKE ? OR c.login_code LIKE ?)";
+            $like = "%" . $query . "%";
+            $params = array_merge($params, array_fill(0, 8, $like));
+        }
+
+        $request = $this->dbh->prepare($sql);
+
+        if ($request->execute($params)) {
+            $row = $request->fetch();
+            return $row ? (int)$row->total : 0;
+        }
+        return 0;
+    }
 
 	/**
 	 * Fetch customers by employer with pagination support

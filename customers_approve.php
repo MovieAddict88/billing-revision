@@ -177,13 +177,7 @@
 						<a href="customer_details.php?id=<?=$customer->id?>" class="btn btn-info btn-sm btn-action">VIEW</a>
 						<button type="submit" id="delete" onclick="delData(<?=$customer->id ?>)" class="btn btn-warning btn-sm btn-action">DELETE</button>
 						<button type="button" class="btn btn-primary btn-sm btn-action" onclick="openRemarkModal(<?=$customer->id?>, '<?=htmlspecialchars($customer->remarks)?>')">REMARK</button>
-						<?php
-							$dueDate = new DateTime($customer->due_date);
-							$today = new DateTime();
-							if ($dueDate < $today) {
-								echo '<a href="disconnect_customer.php?customer_id=' . $customer->id . '" class="btn btn-danger btn-sm btn-action">DISCONNECT</a>';
-							}
-						?>
+						<a href="disconnect_customer.php?customer_id=<?=$customer->id?>" class="btn btn-danger btn-sm btn-action">DISCONNECT</a>
 					</td>
 					<td class="search"><?=$customer->full_name?></td>
 					<td class="search"><?=$customer->employer_name ? $customer->employer_name : 'N/A'?></td>
