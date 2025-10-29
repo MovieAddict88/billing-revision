@@ -83,6 +83,9 @@
 				<li class="users">
 					<a href="customers.php">Customers</a>
 				</li>
+				<li class="users">
+					<a href="disconnected_clients.php">Disconnected Clients</a>
+				</li>
 
 				<li class="users">
 					<a href="user.php">Users</a>
@@ -102,6 +105,9 @@
 			<ul>
 				<li class="overview">
 					<a href="index.php">Dashboard</a>
+				</li>
+				<li class="users">
+					<a href="disconnected_clients.php">Disconnected Clients</a>
 				</li>
 				<li><a href="logout.php">Logout</a></li>
 			</ul>
