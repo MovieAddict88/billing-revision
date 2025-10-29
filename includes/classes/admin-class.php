@@ -814,7 +814,7 @@
 			$offset = max(0, (int)$offset);
 			$limit = max(1, (int)$limit);
 			$params = [];
-			$sql = "\n                SELECT\n                    c.*,\n                    c.remarks,\n                    u.full_name as employer_name,\n                    COALESCE(p.total_paid, 0) as total_paid,\n                    COALESCE(p.total_balance, 0) as total_balance\n                FROM customers c\n                LEFT JOIN kp_user u ON c.employer_id = u.user_id\n                LEFT JOIN (\n                    SELECT customer_id, SUM(amount - balance) as total_paid, SUM(balance) as total_balance\n                    FROM payments GROUP BY customer_id\n                ) p ON c.id = p.customer_id\n                WHERE 1=1";
+			$sql = "\n                SELECT\n                    c.*,\n                    c.remarks,\n                    u.full_name as employer_name,\n                    COALESCE(p.total_paid, 0) as total_paid,\n                    COALESCE(p.total_balance, 0) as total_balance\n                FROM customers c\n                LEFT JOIN kp_user u ON c.employer_id = u.user_id\n                LEFT JOIN (\n                    SELECT customer_id, SUM(amount - balance) as total_paid, SUM(balance) as total_balance\n                    FROM payments GROUP BY customer_id\n                ) p ON c.id = p.customer_id\n                WHERE c.dropped = 0";
 			if ($query !== null && $query !== '') {
 				$sql .= " AND (c.full_name LIKE ? OR c.nid LIKE ? OR c.address LIKE ? OR c.email LIKE ? OR c.ip_address LIKE ? OR c.conn_type LIKE ? OR c.contact LIKE ? OR c.login_code LIKE ? OR u.full_name LIKE ?)";
 				$like = "%" . $query . "%";
@@ -831,7 +831,7 @@
 		public function countCustomers($query = null)
 		{
 			$params = [];
-			$sql = "SELECT COUNT(*) as total FROM customers c LEFT JOIN kp_user u ON c.employer_id = u.user_id WHERE 1=1";
+			$sql = "SELECT COUNT(*) as total FROM customers c LEFT JOIN kp_user u ON c.employer_id = u.user_id WHERE c.dropped = 0";
 			if ($query !== null && $query !== '') {
 				$sql .= " AND (c.full_name LIKE ? OR c.nid LIKE ? OR c.address LIKE ? OR c.email LIKE ? OR c.ip_address LIKE ? OR c.conn_type LIKE ? OR c.contact LIKE ? OR c.login_code LIKE ? OR u.full_name LIKE ?)";
 				$like = "%" . $query . "%";
