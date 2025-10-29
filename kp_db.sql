@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 4.7.0
+-- version 4.9.0.1
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Generation Time: Nov 01, 2017 at 09:21 AM
--- Server version: 10.1.26-MariaDB
--- PHP Version: 7.1.8
+-- Host: sql100.byetcluster.com
+-- Generation Time: Oct 29, 2025 at 07:21 AM
+-- Server version: 10.6.22-MariaDB
+-- PHP Version: 7.2.22
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
@@ -19,7 +19,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `kp_db`
+-- Database: `if0_40117390_qq`
 --
 
 -- --------------------------------------------------------
@@ -33,10 +33,10 @@ CREATE TABLE `billings` (
   `customer_id` int(10) NOT NULL,
   `bill_id` varchar(255) NOT NULL,
   `bill_month` varchar(255) NOT NULL,
-  `Discount` int(11) NOT NULL DEFAULT '0',
+  `Discount` int(11) NOT NULL DEFAULT 0,
   `bill_amount` int(11) NOT NULL,
-  `paid_on` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `paid_on` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 -- --------------------------------------------------------
 
@@ -46,11 +46,11 @@ CREATE TABLE `billings` (
 
 CREATE TABLE `cash_collection` (
   `id` int(10) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `amount` bigint(20) NOT NULL,
   `payee` varchar(255) NOT NULL,
   `remarks` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 -- --------------------------------------------------------
 
@@ -60,11 +60,11 @@ CREATE TABLE `cash_collection` (
 
 CREATE TABLE `cash_expanse` (
   `id` int(11) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `amount` bigint(20) NOT NULL,
   `purpose` text NOT NULL,
   `remarks` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 -- --------------------------------------------------------
 
@@ -76,7 +76,7 @@ CREATE TABLE `customers` (
   `id` int(11) NOT NULL,
   `full_name` varchar(50) NOT NULL,
   `nid` varchar(16) NOT NULL,
-  `address` text,
+  `address` text DEFAULT NULL,
   `conn_location` text NOT NULL,
   `email` varchar(30) NOT NULL,
   `ip_address` varchar(16) NOT NULL,
@@ -85,10 +85,43 @@ CREATE TABLE `customers` (
   `contact` varchar(20) NOT NULL,
   `login_code` varchar(255) DEFAULT NULL,
   `employer_id` int(11) DEFAULT NULL,
-  `dropped` tinyint(1) NOT NULL DEFAULT '0',
-  `due_date` DATE,
-  `remarks` TEXT DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `dropped` tinyint(1) NOT NULL DEFAULT 0,
+  `due_date` date DEFAULT NULL,
+  `remarks` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `disconnected_customers`
+--
+
+CREATE TABLE `disconnected_customers` (
+  `id` int(11) NOT NULL,
+  `original_id` int(11) NOT NULL,
+  `full_name` varchar(50) NOT NULL,
+  `nid` varchar(16) NOT NULL,
+  `address` text DEFAULT NULL,
+  `conn_location` text NOT NULL,
+  `email` varchar(30) NOT NULL,
+  `ip_address` varchar(16) NOT NULL,
+  `conn_type` varchar(10) NOT NULL,
+  `package_id` int(10) NOT NULL,
+  `contact` varchar(20) NOT NULL,
+  `login_code` varchar(255) DEFAULT NULL,
+  `employer_id` int(11) DEFAULT NULL,
+  `due_date` date DEFAULT NULL,
+  `remarks` text DEFAULT NULL,
+  `disconnected_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `disconnected_by` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+--
+-- Dumping data for table `disconnected_customers`
+--
+
+INSERT INTO `disconnected_customers` (`id`, `original_id`, `full_name`, `nid`, `address`, `conn_location`, `email`, `ip_address`, `conn_type`, `package_id`, `contact`, `login_code`, `employer_id`, `due_date`, `remarks`, `disconnected_at`, `disconnected_by`) VALUES
+(1, 5, 'Fagmmmu', 'NID1', 'Zone 9, Bonbon', 'Bulacan', 'ronatorrejos@gmail.com', 'Zone 9, Bonbon', 'Internet', 1, '09663016917', '2f961d9d757c5bce6b960e2c660992b0', 35, '2025-10-28', NULL, '2025-10-29 11:16:17', NULL);
 
 -- --------------------------------------------------------
 
@@ -98,8 +131,8 @@ CREATE TABLE `customers` (
 
 CREATE TABLE `kp_category` (
   `cat_id` int(3) NOT NULL,
-  `cat_name` varchar(20) COLLATE utf8_unicode_ci NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Category name for products table, parents to products';
+  `cat_name` varchar(20) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci COMMENT='Category name for products table, parents to products';
 
 --
 -- Dumping data for table `kp_category`
@@ -117,12 +150,12 @@ INSERT INTO `kp_category` (`cat_id`, `cat_name`) VALUES
 
 CREATE TABLE `kp_products` (
   `pro_id` int(3) NOT NULL COMMENT 'Product identity no',
-  `pro_name` varchar(40) COLLATE utf8_unicode_ci NOT NULL COMMENT 'Product name',
-  `pro_unit` varchar(10) COLLATE utf8_unicode_ci NOT NULL COMMENT 'Product unit',
+  `pro_name` varchar(40) NOT NULL COMMENT 'Product name',
+  `pro_unit` varchar(10) NOT NULL COMMENT 'Product unit',
   `pro_category` varchar(20) CHARACTER SET utf16 COLLATE utf16_unicode_ci NOT NULL COMMENT 'Product category: Child of kp_category table',
-  `pro_details` text COLLATE utf8_unicode_ci NOT NULL COMMENT 'Product details',
-  `pro_dropped` int(1) NOT NULL DEFAULT '0' COMMENT 'If a product is dropped or not'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Table for individuals products';
+  `pro_details` text NOT NULL COMMENT 'Product details',
+  `pro_dropped` int(1) NOT NULL DEFAULT 0 COMMENT 'If a product is dropped or not'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci COMMENT='Table for individuals products';
 
 -- --------------------------------------------------------
 
@@ -132,27 +165,28 @@ CREATE TABLE `kp_products` (
 
 CREATE TABLE `kp_user` (
   `user_id` int(11) NOT NULL,
-  `user_name` varchar(30) COLLATE utf8_unicode_ci NOT NULL,
-  `user_pwd` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `full_name` text COLLATE utf8_unicode_ci NOT NULL,
-  `email` varchar(30) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `contact` varchar(15) COLLATE utf8_unicode_ci NOT NULL,
-  `address` text COLLATE utf8_unicode_ci,
-  `c_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `authentication` int(1) NOT NULL DEFAULT '0',
-  `role` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT 'admin',
-  `location` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `profile_pic` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  `user_name` varchar(30) NOT NULL,
+  `user_pwd` varchar(255) NOT NULL,
+  `full_name` text NOT NULL,
+  `email` varchar(30) DEFAULT NULL,
+  `contact` varchar(15) NOT NULL,
+  `address` text DEFAULT NULL,
+  `c_date` datetime NOT NULL DEFAULT current_timestamp(),
+  `authentication` int(1) NOT NULL DEFAULT 0,
+  `role` varchar(255) NOT NULL DEFAULT 'admin',
+  `location` varchar(255) DEFAULT NULL,
+  `profile_pic` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci;
 
 --
 -- Dumping data for table `kp_user`
 --
 
-INSERT INTO `kp_user` (`user_id`, `user_name`, `user_pwd`, `full_name`, `email`, `contact`, `address`, `c_date`, `authentication`) VALUES
-(32, 'moshiur', '$2y$10$Xk8TYun1Crr0gIS960sSCeh7rfXfQfK2VJ3rJ7SThN/6cehlop35O', 'Moshiur Rahman', 'unimrgm@gmail.com', '01719454658', 'Bogra', '2017-10-21 20:39:51', 0),
-(33, 'misu', '$2y$10$xuIQ8LSURAJbGj8dD8Wr9.0PzbPq2qUvaLjmSwMh/5xEY.SHeKYnS', 'Mushfiqur Rahman', 'misu@gmail.com', '01719454658', 'Bogra', '2017-10-22 07:29:55', 0),
-(34, 'admin', '$2y$10$51/xhfZqmMt6pr9HhXfZB.Punql5srC5vXtOEradf0Cs5Dg/FzHYy', 'Mr Admin', 'admin@netwaybd.com', '051-56565', 'Netway', '2017-10-23 15:28:31', 0);
+INSERT INTO `kp_user` (`user_id`, `user_name`, `user_pwd`, `full_name`, `email`, `contact`, `address`, `c_date`, `authentication`, `role`, `location`, `profile_pic`) VALUES
+(32, 'moshiur', '$2y$10$Xk8TYun1Crr0gIS960sSCeh7rfXfQfK2VJ3rJ7SThN/6cehlop35O', 'Moshiur Rahman', 'unimrgm@gmail.com', '01719454658', 'Bogra', '2017-10-21 20:39:51', 0, 'admin', NULL, NULL),
+(33, 'misu', '$2y$10$xuIQ8LSURAJbGj8dD8Wr9.0PzbPq2qUvaLjmSwMh/5xEY.SHeKYnS', 'Mushfiqur Rahman', 'misu@gmail.com', '01719454658', 'Bogra', '2017-10-22 07:29:55', 0, 'admin', NULL, NULL),
+(34, 'admin', '$2y$10$51/xhfZqmMt6pr9HhXfZB.Punql5srC5vXtOEradf0Cs5Dg/FzHYy', 'Mr Admin', 'admin@netwaybd.com', '051-56565', 'Netway', '2017-10-23 15:28:31', 0, 'admin', NULL, NULL),
+(35, 'Ronald', '$2y$10$CoxE5ji2/LjWyJBLl3AfcuGs2RNdz7RNap5LU3jVKHrwgVb4pj8MG', 'Fagmmmu', 'ronatorrejos@gmail.com', '09663016917', 'Zone 9, Bonbon', '2025-10-29 17:39:52', 0, 'employer', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -164,8 +198,8 @@ CREATE TABLE `packages` (
   `id` int(10) NOT NULL,
   `name` varchar(255) NOT NULL,
   `fee` bigint(20) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 --
 -- Dumping data for table `packages`
@@ -190,7 +224,7 @@ CREATE TABLE `payments` (
   `r_month` varchar(255) NOT NULL,
   `amount` int(10) NOT NULL,
   `balance` decimal(10,2) DEFAULT 0.00,
-  `g_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `g_date` timestamp NOT NULL DEFAULT current_timestamp(),
   `p_date` timestamp NULL DEFAULT NULL,
   `status` varchar(20) NOT NULL DEFAULT 'Unpaid',
   `payment_method` varchar(50) DEFAULT NULL,
@@ -199,7 +233,7 @@ CREATE TABLE `payments` (
   `gcash_number` varchar(255) DEFAULT NULL,
   `screenshot` varchar(255) DEFAULT NULL,
   `payment_timestamp` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 -- --------------------------------------------------------
 
@@ -207,7 +241,7 @@ CREATE TABLE `payments` (
 -- Table structure for table `payment_history`
 --
 
-CREATE TABLE IF NOT EXISTS `payment_history` (
+CREATE TABLE `payment_history` (
   `id` int(11) NOT NULL,
   `payment_id` int(10) NOT NULL,
   `customer_id` int(11) NOT NULL,
@@ -219,8 +253,8 @@ CREATE TABLE IF NOT EXISTS `payment_history` (
   `balance_after` decimal(10,2) NOT NULL,
   `payment_method` varchar(50) DEFAULT NULL,
   `reference_number` varchar(255) DEFAULT NULL,
-  `paid_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `paid_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 -- --------------------------------------------------------
 
@@ -232,12 +266,12 @@ CREATE TABLE `product` (
   `id` int(11) NOT NULL,
   `product_id` int(11) NOT NULL,
   `quantity` int(11) NOT NULL,
-  `cdate` datetime DEFAULT CURRENT_TIMESTAMP,
+  `cdate` datetime DEFAULT current_timestamp(),
   `provider` varchar(50) NOT NULL,
   `remarks` text NOT NULL,
   `recipient` varchar(50) NOT NULL,
   `type` tinyint(1) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 --
 -- Indexes for dumped tables
@@ -267,6 +301,14 @@ ALTER TABLE `cash_expanse`
 ALTER TABLE `customers`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `nid` (`nid`);
+
+--
+-- Indexes for table `disconnected_customers`
+--
+ALTER TABLE `disconnected_customers`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `original_id` (`original_id`),
+  ADD KEY `disconnected_at` (`disconnected_at`);
 
 --
 -- Indexes for table `kp_category`
@@ -303,6 +345,14 @@ ALTER TABLE `payments`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `payment_history`
+--
+ALTER TABLE `payment_history`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_payment_id` (`payment_id`),
+  ADD KEY `idx_customer_id_paidat` (`customer_id`,`paid_at`);
+
+--
 -- Indexes for table `product`
 --
 ALTER TABLE `product`
@@ -317,64 +367,73 @@ ALTER TABLE `product`
 --
 ALTER TABLE `billings`
   MODIFY `id` int(10) NOT NULL AUTO_INCREMENT;
+
 --
 -- AUTO_INCREMENT for table `cash_collection`
 --
 ALTER TABLE `cash_collection`
   MODIFY `id` int(10) NOT NULL AUTO_INCREMENT;
+
 --
 -- AUTO_INCREMENT for table `cash_expanse`
 --
 ALTER TABLE `cash_expanse`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 --
 -- AUTO_INCREMENT for table `customers`
 --
 ALTER TABLE `customers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT for table `disconnected_customers`
+--
+ALTER TABLE `disconnected_customers`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
 --
 -- AUTO_INCREMENT for table `kp_category`
 --
 ALTER TABLE `kp_category`
   MODIFY `cat_id` int(3) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
 --
 -- AUTO_INCREMENT for table `kp_products`
 --
 ALTER TABLE `kp_products`
   MODIFY `pro_id` int(3) NOT NULL AUTO_INCREMENT COMMENT 'Product identity no';
+
 --
 -- AUTO_INCREMENT for table `kp_user`
 --
 ALTER TABLE `kp_user`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
+
 --
 -- AUTO_INCREMENT for table `packages`
 --
 ALTER TABLE `packages`
   MODIFY `id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
 --
 -- AUTO_INCREMENT for table `payments`
 --
 ALTER TABLE `payments`
-  MODIFY `id` int(10) NOT NULL AUTO_INCREMENT;
---
--- Indexes and AUTO_INCREMENT for table `payment_history`
---
-ALTER TABLE `payment_history`
-  ADD PRIMARY KEY (`id`);
+  MODIFY `id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
+--
+-- AUTO_INCREMENT for table `payment_history`
+--
 ALTER TABLE `payment_history`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
--- Additional indexes for performance
-ALTER TABLE `payment_history`
-  ADD KEY `idx_payment_id` (`payment_id`),
-  ADD KEY `idx_customer_id_paidat` (`customer_id`, `paid_at`);
 --
 -- AUTO_INCREMENT for table `product`
 --
 ALTER TABLE `product`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;COMMIT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
