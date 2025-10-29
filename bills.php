@@ -1,6 +1,8 @@
 <?php
 	// Start from getting the hader which contains some settings we need
 	require_once 'includes/header.php';
+	require_once 'config/dbconnection.php';
+	$dbh = new Dbconnect();
 	require_once "includes/classes/admin-class.php";
 	$admins	= new Admins($dbh);
 	// Redirect visitor to the login page if he is trying to access
@@ -48,6 +50,7 @@
 				    <th>Package</th>
 				    <th>Months</th>
 				    <th>Amounts</th>
+				    <th>Due Date</th>
 				    <th>Status</th>
 				    <th>Action</th>
 				  </tr>
@@ -69,6 +72,7 @@
 			  	<td><?=$package_name?></td>
 			  	<td><?=$bill->months?></td>
 			  	<td>₱<?=number_format($bill->total, 2)?></td>
+				<td><?=$customer_info->due_date?></td>
 				<td>
 					<?php 
 						$status = $bill->status;

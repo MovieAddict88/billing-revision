@@ -276,6 +276,7 @@
 		$request = $this->dbh->prepare("
 			SELECT
 				c.*,
+				c.remarks,
 				COALESCE(p.total_paid, 0) as total_paid,
 				COALESCE(p.total_balance, 0) as total_balance,
 				CASE
@@ -415,6 +416,17 @@
 				}
 			}
 			return 'Unpaid';
+		}
+
+		public function fetchAllIndividualBillHistory($customer_id)
+		{
+			$sql = "SELECT *, (`amount` - `balance`) as paid FROM `payments` WHERE customer_id = ? ORDER BY `p_date` DESC";
+			$params = [$customer_id];
+			$request = $this->dbh->prepare($sql);
+			if ($request->execute($params)) {
+				return $request->fetchAll();
+			}
+			return false;
 		}
 
 		public function getEmployerById($id)
@@ -561,11 +573,11 @@
 		 * 
 		 */
 		
-		public function addCustomer($full_name, $nid, $address, $conn_location, $email, $package, $ip_address, $conn_type, $contact, $login_code, $employer_id)
+		public function addCustomer($full_name, $nid, $address, $conn_location, $email, $package, $ip_address, $conn_type, $contact, $login_code, $employer_id, $due_date)
 		{
-			$request = $this->dbh->prepare("INSERT INTO customers (`full_name`, `nid`, `address`, `conn_location`, `email`, `package_id`, `ip_address`, `conn_type`, `contact`, `login_code`, `employer_id`) VALUES(?,?,?,?,?,?,?,?,?,?,?)");
+			$request = $this->dbh->prepare("INSERT INTO customers (`full_name`, `nid`, `address`, `conn_location`, `email`, `package_id`, `ip_address`, `conn_type`, `contact`, `login_code`, `employer_id`, `due_date`) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)");
 			// Do not forget to encrypt the pasword before saving
-			if ($request->execute([$full_name, $nid, $address, $conn_location, $email, $package, $ip_address, $conn_type, $contact, $login_code, $employer_id])) {
+			if ($request->execute([$full_name, $nid, $address, $conn_location, $email, $package, $ip_address, $conn_type, $contact, $login_code, $employer_id, $due_date])) {
 				return $this->dbh->lastInsertId();
 			}
 			return false;
@@ -609,10 +621,43 @@
 		/**
 		 * Update Customers
 		 */
-		public function updateCustomer($id, $full_name, $nid, $address, $conn_location, $email, $package, $ip_address, $conn_type, $contact, $employer_id)
+		public function updateCustomer($id, $full_name, $nid, $address, $conn_location, $email, $package, $ip_address, $conn_type, $contact, $employer_id, $due_date)
 		{
-			$request = $this->dbh->prepare("UPDATE customers SET full_name =?, nid =?, address =?, conn_location= ?, email =?, package_id =?, ip_address=?, conn_type=?, contact=?, employer_id = ? WHERE id =?");
-			return $request->execute([$full_name, $nid, $address, $conn_location, $email, $package, $ip_address, $conn_type, $contact, $employer_id, $id]);
+			$request = $this->dbh->prepare("UPDATE customers SET full_name =?, nid =?, address =?, conn_location= ?, email =?, package_id =?, ip_address=?, conn_type=?, contact=?, employer_id = ?, due_date = ? WHERE id =?");
+			return $request->execute([$full_name, $nid, $address, $conn_location, $email, $package, $ip_address, $conn_type, $contact, $employer_id, $due_date, $id]);
+		}
+
+		public function addRemark($customer_id, $remark)
+		{
+			try {
+				$request = $this->dbh->prepare("UPDATE customers SET remarks = ? WHERE id = ?");
+				return $request->execute([$remark, $customer_id]);
+			} catch (Exception $e) {
+				error_log($e->getMessage());
+				return false;
+			}
+		}
+
+		public function updateRemark($customer_id, $remark)
+		{
+			try {
+				$request = $this->dbh->prepare("UPDATE customers SET remarks = ? WHERE id = ?");
+				return $request->execute([$remark, $customer_id]);
+			} catch (Exception $e) {
+				error_log($e->getMessage());
+				return false;
+			}
+		}
+
+		public function deleteRemark($customer_id)
+		{
+			try {
+				$request = $this->dbh->prepare("UPDATE customers SET remarks = NULL WHERE id = ?");
+				return $request->execute([$customer_id]);
+			} catch (Exception $e) {
+				error_log($e->getMessage());
+				return false;
+			}
 		}
 
 
@@ -665,7 +710,7 @@
 			$offset = max(0, (int)$offset);
 			$limit = max(1, (int)$limit);
 			$params = [];
-			$sql = "\n                SELECT\n                    c.*,\n                    u.full_name as employer_name,\n                    COALESCE(p.total_paid, 0) as total_paid,\n                    COALESCE(p.total_balance, 0) as total_balance\n                FROM customers c\n                LEFT JOIN kp_user u ON c.employer_id = u.user_id\n                LEFT JOIN (\n                    SELECT customer_id, SUM(amount - balance) as total_paid, SUM(balance) as total_balance\n                    FROM payments GROUP BY customer_id\n                ) p ON c.id = p.customer_id\n                WHERE 1=1";
+			$sql = "\n                SELECT\n                    c.*,\n                    c.remarks,\n                    u.full_name as employer_name,\n                    COALESCE(p.total_paid, 0) as total_paid,\n                    COALESCE(p.total_balance, 0) as total_balance\n                FROM customers c\n                LEFT JOIN kp_user u ON c.employer_id = u.user_id\n                LEFT JOIN (\n                    SELECT customer_id, SUM(amount - balance) as total_paid, SUM(balance) as total_balance\n                    FROM payments GROUP BY customer_id\n                ) p ON c.id = p.customer_id\n                WHERE 1=1";
 			if ($query !== null && $query !== '') {
 				$sql .= " AND (c.full_name LIKE ? OR c.nid LIKE ? OR c.address LIKE ? OR c.email LIKE ? OR c.ip_address LIKE ? OR c.conn_type LIKE ? OR c.contact LIKE ? OR c.login_code LIKE ? OR u.full_name LIKE ?)";
 				$like = "%" . $query . "%";
@@ -942,7 +987,7 @@
 		/**
 		 * Insert a row into payment_history to keep an immutable ledger of payments.
 		 */
-		public function insertPaymentHistoryEntry($payment, $paid_amount)
+		public function insertPaymentHistoryEntry($payment, $paid_amount, $paid_at = null)
 		{
 			if (!$payment) {
 				return false;
@@ -964,8 +1009,9 @@
 				$customer = isset($customer) ? $customer : $this->getCustomerInfo($payment->customer_id);
 				$history_employer_id = $customer ? $customer->employer_id : null;
 			}
-			$request = $this->dbh->prepare("INSERT INTO payment_history (payment_id, customer_id, employer_id, package_id, r_month, amount, paid_amount, balance_after, payment_method, reference_number, paid_at) VALUES (?,?,?,?,?,?,?,?,?,?, NOW())");
-			return $request->execute([
+   $paid_at_sql = $paid_at ? '?' : 'NOW()';
+			$request = $this->dbh->prepare("INSERT INTO payment_history (payment_id, customer_id, employer_id, package_id, r_month, amount, paid_amount, balance_after, payment_method, reference_number, paid_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)");
+   $params = [
 				$payment->id,
 				$payment->customer_id,
 				$history_employer_id,
@@ -976,7 +1022,9 @@
 				(float)$payment->balance,
 				$payment->payment_method,
 				$payment->reference_number,
-			]);
+				$payment->payment_timestamp,
+			];
+			return $request->execute($params);
 		}
 
 		public function fetchPaymentHistoryByCustomer($customer_id)
@@ -1027,8 +1075,13 @@
 			return $request->execute([$new_balance, $payment_method, $reference_number, $submitted_amount, $gcash_number, $screenshot_path, $payment_id]);
 		}
 
-		public function processManualPayment($customer_id, $employer_id, $amount, $reference_number, $selected_bills, $screenshot = null)
+		public function processManualPayment($customer_id, $employer_id, $amount, $reference_number, $selected_bills, $payment_method, $screenshot = null, $payment_date = null, $payment_time = null)
 		{
+   $paid_at = null;
+   if ($payment_date && $payment_time) {
+    $paid_at = date('Y-m-d H:i:s', strtotime("$payment_date $payment_time"));
+   }
+
 			$screenshot_path = null;
 			if ($screenshot && $screenshot['error'] == UPLOAD_ERR_OK) {
 				$upload_dir = 'uploads/screenshots/';
@@ -1066,14 +1119,16 @@
 					}
 
 					$request = $this->dbh->prepare(
-						"UPDATE payments SET status = 'Pending', balance = ?, payment_method = 'Manual', employer_id = ?, reference_number = ?, screenshot = ?, gcash_name = ? WHERE id = ?"
+						"UPDATE payments SET status = 'Pending', balance = ?, payment_method = ?, employer_id = ?, reference_number = ?, screenshot = ?, gcash_name = ?, payment_timestamp = ? WHERE id = ?"
 					);
 					$request->execute([
 						$new_balance,
+						$payment_method,
 						$employer_id,
 						$reference_number,
 						$screenshot_path,
 						$payment_for_this_bill,
+						$paid_at,
 						$bill_id
 					]);
 
@@ -1090,7 +1145,7 @@
 			}
 		}
 
-		public function approvePayment($payment_id)
+		public function approvePayment($payment_id, $paid_at = null)
 		{
 			$payment = $this->getPaymentById($payment_id);
 			if (!$payment) {
@@ -1115,12 +1170,19 @@
 
 			// Insert a history entry for this payment approval
 			if ($submitted_amount > 0) {
-				$this->insertPaymentHistoryEntry($payment, $submitted_amount);
+				$this->insertPaymentHistoryEntry($payment, $submitted_amount, $paid_at);
 			}
 
 			$new_status = ($payment->balance <= 0) ? 'Paid' : 'Unpaid';
-			$request = $this->dbh->prepare("UPDATE payments SET status = ?, p_date = NOW(), screenshot = NULL, gcash_name = NULL, gcash_number = NULL WHERE id = ?");
-			return $request->execute([$new_status, $payment_id]);
+   $p_date_sql = $paid_at ? '?' : 'NOW()';
+			$request = $this->dbh->prepare("UPDATE payments SET status = ?, p_date = $p_date_sql, screenshot = NULL, gcash_name = NULL, gcash_number = NULL, payment_timestamp = ? WHERE id = ?");
+   $params = [$new_status];
+   if ($paid_at) {
+    $params[] = $paid_at;
+   }
+   $params[] = $payment->payment_timestamp;
+   $params[] = $payment_id;
+			return $request->execute($params);
 		}
 
         public function rejectPayment($payment_id)

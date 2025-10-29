@@ -74,6 +74,10 @@
                             <td><?= $customerInfo->contact ?></td>
                         </tr>
                         <tr>
+                            <th>Due Date</th>
+                            <td><?= $customerInfo->due_date ?></td>
+                        </tr>
+                        <tr>
                             <th>Connection Location</th>
                             <td><?= $customerInfo->conn_location ?></td>
                         </tr>
@@ -222,7 +226,7 @@
                         <?php if (!empty($paymentLedger)): ?>
                             <?php foreach ($paymentLedger as $row): ?>
                                 <tr>
-                                    <td><?= htmlspecialchars(date('Y-m-d H:i:s', strtotime($row->paid_at))) ?></td>
+                                    <td><?= htmlspecialchars(date('Y-m-d h:i:s A', strtotime($row->paid_at))) ?></td>
                                     <td><?= htmlspecialchars($row->r_month) ?></td>
                                     <td><?= htmlspecialchars($row->package_name ?: 'N/A') ?></td>
                                     <td><?= number_format((float)$row->amount, 2) ?></td>
