@@ -18,8 +18,28 @@ $is_admin = ($_SESSION['admin_session']->role == 'admin');
         <div class="panel panel-default">
             <div class="panel-heading">
                 <h4>Disconnected Clients</h4>
+                <div class="pull-right">
+                    <a href="customers.php" class="btn btn-primary">Back to Active Customers</a>
+                </div>
             </div>
             <div class="panel-body">
+                <?php if (isset($_SESSION['success'])) { ?>
+                    <div class="alert alert-success">
+                        <?= $_SESSION['success'] ?>
+                    </div>
+                <?php 
+                    unset($_SESSION['success']);
+                } ?>
+                <?php if (isset($_SESSION['errors'])) { ?>
+                    <div class="alert alert-danger">
+                        <?php foreach ($_SESSION['errors'] as $error): ?>
+                            <li><?= $error ?></li>
+                        <?php endforeach ?>
+                    </div>
+                <?php 
+                    unset($_SESSION['errors']);
+                } ?>
+                
                 <?php if ($is_admin) : ?>
                     <div class="col-md-6">
                         <form class="form-inline pull-right">
@@ -39,7 +59,7 @@ $is_admin = ($_SESSION['admin_session']->role == 'admin');
                 <table class="table table-striped table-bordered" id="grid-basic" style="min-width: 1200px; width: 100%;">
                     <thead class="thead-inverse">
                         <tr class="info">
-                            <th style="min-width: 50px;">ID</th>
+                            <th style="min-width: 50px;">Original ID</th>
                             <th style="min-width: 150px;">Name</th>
                             <?php if ($is_admin) : ?>
                                 <th style="min-width: 150px;">Employer</th>
@@ -55,9 +75,11 @@ $is_admin = ($_SESSION['admin_session']->role == 'admin');
                             <th style="min-width: 120px;">Login Code</th>
                             <th style="min-width: 120px;">Due Date</th>
                             <th style="min-width: 200px;">Remarks</th>
+                            <th style="min-width: 150px;">Disconnected At</th>
                         </tr>
                     </thead>
                     <tbody>
+                        <!-- Data will be loaded here via AJAX -->
                     </tbody>
                 </table>
             </div>
@@ -66,6 +88,7 @@ $is_admin = ($_SESSION['admin_session']->role == 'admin');
 </div>
 
 <?php include 'includes/footer.php'; ?>
+
 <script type="text/javascript">
     function viewData(page, q, limit) {
         page = typeof page !== 'undefined' ? page : 1;
@@ -89,6 +112,7 @@ $is_admin = ($_SESSION['admin_session']->role == 'admin');
         viewData(1, '', 10);
     };
 </script>
+
 <script type="text/javascript">
     $(function() {
         var grid = $('#grid-basic');

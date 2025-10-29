@@ -7,8 +7,15 @@ $admins = new Admins($dbh);
 
 if (isset($_GET['customer_id'])) {
     $customer_id = $_GET['customer_id'];
-    $admins->disconnectCustomer($customer_id);
+    $disconnected_by = $_SESSION['admin_session']->user_id ?? null;
+    
+    if ($admins->disconnectCustomer($customer_id, $disconnected_by)) {
+        $_SESSION['success'] = 'Customer successfully disconnected and moved to disconnected clients.';
+    } else {
+        $_SESSION['errors'] = ['Failed to disconnect customer.'];
+    }
 }
 
 header("Location: customers.php");
 exit();
+?>

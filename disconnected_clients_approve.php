@@ -7,7 +7,6 @@ $dbh = new Dbconnect();
 $admins = new Admins($dbh);
 
 $is_admin = isset($_SESSION['admin_session']) && $_SESSION['admin_session']->role == 'admin';
-$employer_id = isset($_SESSION['admin_session']) ? $_SESSION['admin_session']->user_id : null;
 
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
@@ -15,12 +14,14 @@ $q = isset($_GET['q']) ? $_GET['q'] : null;
 
 $offset = ($page - 1) * $limit;
 
+// Only admin can view all disconnected customers
 if ($is_admin) {
     $results = $admins->fetchDisconnectedCustomersPage($offset, $limit, $q);
     $total_records = $admins->countDisconnectedCustomers($q);
 } else {
-    $results = $admins->fetchDisconnectedCustomersByEmployerPage($employer_id, $offset, $limit, $q);
-    $total_records = $admins->countDisconnectedCustomersByEmployer($employer_id, $q);
+    // Employers can't view disconnected customers in this view
+    $results = [];
+    $total_records = 0;
 }
 
 $total_pages = ceil($total_records / $limit);
@@ -37,7 +38,7 @@ if (isset($results) && sizeof($results) > 0) {
         }
 ?>
         <tr>
-            <td><?= $result->id ?></td>
+            <td><?= $result->original_id ?></td>
             <td><?= $result->full_name ?></td>
             <?php if ($is_admin) : ?>
                 <td><?= $result->employer_name ?></td>
@@ -53,6 +54,7 @@ if (isset($results) && sizeof($results) > 0) {
             <td><?= $result->login_code ?></td>
             <td><?= $result->due_date ?></td>
             <td><?= $result->remarks ?></td>
+            <td><?= date('Y-m-d H:i', strtotime($result->disconnected_at)) ?></td>
         </tr>
     <?php }
 } else { ?>
@@ -78,3 +80,4 @@ if ($total_pages > 1) { ?>
         </td>
     </tr>
 <?php }
+?>
